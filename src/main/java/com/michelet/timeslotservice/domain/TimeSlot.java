@@ -8,6 +8,9 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.UUID;
 
+import com.michelet.common.exception.BusinessException;
+import com.michelet.timeslotservice.exception.TimeSlotErrorCode;
+
 @Getter
 public class TimeSlot {
     private final UUID id;
@@ -53,10 +56,10 @@ public class TimeSlot {
 
     public void deduct(int requiredCapacity) {
         if (this.status == TimeSlotStatus.CLOSED) {
-            throw new IllegalStateException("Time slot is already closed.");
+            throw new BusinessException(TimeSlotErrorCode.TIME_SLOT_CLOSED);
         }
         if (this.remainingCapacity < requiredCapacity) {
-            throw new IllegalArgumentException("Not enough remaining capacity.");
+            throw new BusinessException(TimeSlotErrorCode.NOT_ENOUGH_CAPACITY);
         }
 
         this.remainingCapacity -= requiredCapacity;
