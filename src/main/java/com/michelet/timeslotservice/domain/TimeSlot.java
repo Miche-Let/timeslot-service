@@ -33,7 +33,24 @@ public class TimeSlot {
     private final UUID updatedBy;
     private final LocalDateTime deletedAt;
     private final UUID deletedBy;
-
+    /**
+     * 생성자.
+     * @param id 타임슬롯 ID
+     * @param restaurantId 식당 ID
+     * @param targetDate 타겟 날짜
+     * @param startTime 시작 시간
+     * @param endTime 종료 시간
+     * @param capacity 수용 인원
+     * @param remainingCapacity 잔여 수용 인원
+     * @param status 상태
+     * @param version 버전
+     * @param createdAt 생성 시간
+     * @param createdBy 생성자
+     * @param updatedAt 수정 시간
+     * @param updatedBy 수정자
+     * @param deletedAt 삭제 시간
+     * @param deletedBy 삭제자
+     */
     @Builder
     public TimeSlot(UUID id, UUID restaurantId, LocalDate targetDate, 
                     LocalTime startTime, LocalTime endTime, int capacity, 
@@ -41,11 +58,10 @@ public class TimeSlot {
                     LocalDateTime createdAt, UUID createdBy, LocalDateTime updatedAt, 
                     UUID updatedBy, LocalDateTime deletedAt, UUID deletedBy) {
         
-
-        if (startTime != null && endTime != null && !startTime.isBefore(endTime)) {
+        
+        if (restaurantId == null || targetDate == null || startTime == null || endTime == null) {
             throw new BusinessException(TimeSlotErrorCode.INVALID_TIME_RANGE);
         }
-
         if (capacity <= 0 || remainingCapacity < 0 || remainingCapacity > capacity) {
             throw new BusinessException(TimeSlotErrorCode.INVALID_CAPACITY);
         }
@@ -57,7 +73,9 @@ public class TimeSlot {
         this.endTime = endTime;
         this.capacity = capacity;
         this.remainingCapacity = remainingCapacity;
-        this.status = status != null ? status : TimeSlotStatus.OPENED;
+        this.status = (status != null)
+                ? status
+                : (remainingCapacity == 0 ? TimeSlotStatus.CLOSED : TimeSlotStatus.OPENED);
         this.version = version;
         
         this.createdAt = createdAt;
