@@ -7,6 +7,10 @@ import org.springframework.data.domain.AuditorAware;
 import java.util.Optional;
 import java.util.UUID;
 
+
+/**
+ * JPA Auditing 기능을 활성화하여 생성자 및 수정자 UUID를 자동 주입하기 위한 설정 클래스.
+ */
 @Configuration
 public class AuditorConfig {
 

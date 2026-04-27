@@ -12,6 +12,9 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.UUID;
 
+/**
+ * DB의 p_time_slot 테이블과 매핑되는 JPA 엔티티 클래스.
+ */
 @Entity
 @Table(name = "p_time_slot")
 @Getter

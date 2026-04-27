@@ -4,6 +4,9 @@ import com.michelet.common.exception.ErrorCode;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
+/**
+ * 타임슬롯 도메인에서 발생하는 비즈니스 예외 코드 모음.
+ */
 @Getter
 @RequiredArgsConstructor
 public enum TimeSlotErrorCode implements ErrorCode {
