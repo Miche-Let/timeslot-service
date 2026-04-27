@@ -9,7 +9,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.context.annotation.Import;
-import org.springframework.test.annotation.Commit;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -26,7 +25,6 @@ class TimeSlotRepositoryTest {
     private TimeSlotRepository timeSlotRepository;
 
     @Test
-    @Commit
     @DisplayName("TimeSlotEntity can be saved and found by ID")
     void saveAndFindById_Success() {
         UUID id = UUID.randomUUID();
