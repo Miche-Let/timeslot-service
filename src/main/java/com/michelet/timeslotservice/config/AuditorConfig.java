@@ -14,6 +14,10 @@ import java.util.UUID;
 @Configuration
 public class AuditorConfig {
 
+    /**
+     * 현재 작업자의 UUID를 제공하는 AuditorAware 빈을 생성합니다.
+     * @return UUID를 담은 Optional 객체
+     */
     @Bean
     public AuditorAware<UUID> auditorAware() {
         // MVP 및 로컬 테스트 통과를 위한 임시 UUID 제공

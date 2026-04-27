@@ -71,7 +71,6 @@ public class TimeSlot {
      * @param requiredCapacity 차감할 인원 수
      * @throws BusinessException 잔여 인원이 부족하거나 마감된 경우 발생
      */
-    
     public void deduct(int requiredCapacity) {
         if (requiredCapacity <= 0) {
         throw new BusinessException(TimeSlotErrorCode.INVALID_CAPACITY_REQUEST);

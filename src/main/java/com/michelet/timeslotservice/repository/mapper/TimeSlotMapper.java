@@ -11,7 +11,17 @@ import org.mapstruct.ReportingPolicy;
 @Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.IGNORE)
 public interface TimeSlotMapper {
 
+    /**
+     * 순수 도메인 객체를 JPA 엔티티로 변환합니다.
+     * @param domain 타임슬롯 도메인 객체
+     * @return 변환된 엔티티
+     */
     TimeSlotEntity toEntity(TimeSlot domain);
 
+    /**
+     * JPA 엔티티를 순수 도메인 객체로 변환합니다.
+     * @param entity 타임슬롯 JPA 엔티티
+     * @return 변환된 도메인 객체
+     */
     TimeSlot toDomain(TimeSlotEntity entity);
 }

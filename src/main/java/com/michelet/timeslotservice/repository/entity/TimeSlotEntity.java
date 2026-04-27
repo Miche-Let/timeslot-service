@@ -51,6 +51,18 @@ public class TimeSlotEntity extends BaseEntity {
     @Column(name = "version", nullable = false)
     private Long version;
 
+    /**
+     * 생성자.
+     * @param id 타임슬롯 ID
+     * @param restaurantId 식당 ID
+     * @param targetDate 타겟 날짜
+     * @param startTime 시작 시간
+     * @param endTime 종료 시간
+     * @param capacity 수용 인원
+     * @param remainingCapacity 잔여 수용 인원
+     * @param status 상태
+     * @param version 버전
+     */
     @Builder
     public TimeSlotEntity(UUID id, UUID restaurantId, LocalDate targetDate,
                           LocalTime startTime, LocalTime endTime, int capacity,
