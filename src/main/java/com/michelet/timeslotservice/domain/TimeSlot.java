@@ -34,6 +34,34 @@ public class TimeSlot {
     private final LocalDateTime deletedAt;
     private final UUID deletedBy;
 
+    /**
+     * Constructs a TimeSlot with the provided identity, schedule, capacity and audit metadata.
+     *
+     * The constructor validates that when both `startTime` and `endTime` are provided, `startTime`
+     * is strictly before `endTime`. It also validates capacity invariants and defaults `status`
+     * to `TimeSlotStatus.OPENED` when `status` is null.
+     *
+     * @param id               the time slot UUID
+     * @param restaurantId     the associated restaurant UUID
+     * @param targetDate       the date this time slot applies to
+     * @param startTime        the start time of the slot (may be null)
+     * @param endTime          the end time of the slot (may be null)
+     * @param capacity         total capacity; must be greater than 0
+     * @param remainingCapacity remaining capacity; must be >= 0 and <= `capacity`
+     * @param status           lifecycle status; if null, defaults to `TimeSlotStatus.OPENED`
+     * @param version          optimistic-locking/version value
+     * @param createdAt        creation timestamp (may be null)
+     * @param createdBy        creator user id (may be null)
+     * @param updatedAt        last update timestamp (may be null)
+     * @param updatedBy        last updater user id (may be null)
+     * @param deletedAt        deletion timestamp (may be null)
+     * @param deletedBy        deleter user id (may be null)
+     *
+     * @throws BusinessException if `startTime` and `endTime` are both non-null and `startTime`
+     *                           is not strictly before `endTime` (TimeSlotErrorCode.INVALID_TIME_RANGE)
+     * @throws BusinessException if `capacity <= 0` or `remainingCapacity < 0` or
+     *                           `remainingCapacity > capacity` (TimeSlotErrorCode.INVALID_CAPACITY)
+     */
     @Builder
     public TimeSlot(UUID id, UUID restaurantId, LocalDate targetDate, 
                     LocalTime startTime, LocalTime endTime, int capacity, 
@@ -69,9 +97,12 @@ public class TimeSlot {
     }
 
     /**
-     * 타임슬롯의 예약 가능 인원을 차감합니다.
-     * @param requiredCapacity 차감할 인원 수
-     * @throws BusinessException 잔여 인원이 부족하거나 마감된 경우 발생
+     * Deducts the specified number of seats from the time slot's remaining capacity and marks the slot closed when capacity reaches zero.
+     *
+     * @param requiredCapacity number of seats to deduct
+     * @throws BusinessException if {@code requiredCapacity} is less than or equal to zero (TimeSlotErrorCode.INVALID_CAPACITY_REQUEST)
+     * @throws BusinessException if the time slot is already closed (TimeSlotErrorCode.TIME_SLOT_CLOSED)
+     * @throws BusinessException if remaining capacity is less than {@code requiredCapacity} (TimeSlotErrorCode.NOT_ENOUGH_CAPACITY)
      */
     public void deduct(int requiredCapacity) {
         if (requiredCapacity <= 0) {

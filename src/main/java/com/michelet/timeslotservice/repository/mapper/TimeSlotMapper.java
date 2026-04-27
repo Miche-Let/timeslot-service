@@ -12,16 +12,18 @@ import org.mapstruct.ReportingPolicy;
 public interface TimeSlotMapper {
 
     /**
-     * 순수 도메인 객체를 JPA 엔티티로 변환합니다.
-     * @param domain 타임슬롯 도메인 객체
-     * @return 변환된 엔티티
-     */
+ * Converts a TimeSlot domain object to its JPA entity representation.
+ *
+ * @param domain the TimeSlot domain object to convert
+ * @return the corresponding TimeSlotEntity representing the domain object
+ */
     TimeSlotEntity toEntity(TimeSlot domain);
 
     /**
-     * JPA 엔티티를 순수 도메인 객체로 변환합니다.
-     * @param entity 타임슬롯 JPA 엔티티
-     * @return 변환된 도메인 객체
-     */
+ * Maps a TimeSlot JPA entity to its domain representation.
+ *
+ * @param entity the TimeSlot JPA entity to convert
+ * @return the corresponding TimeSlot domain object
+ */
     TimeSlot toDomain(TimeSlotEntity entity);
 }

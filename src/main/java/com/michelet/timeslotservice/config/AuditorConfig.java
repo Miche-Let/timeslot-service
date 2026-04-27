@@ -15,8 +15,12 @@ import java.util.UUID;
 public class AuditorConfig {
 
     /**
-     * 현재 작업자의 UUID를 제공하는 AuditorAware 빈을 생성합니다.
-     * @return UUID를 담은 Optional 객체
+     * Provides an AuditorAware<UUID> bean that supplies the current worker's UUID.
+     *
+     * The bean returns a fixed placeholder UUID ("00000000-0000-0000-0000-000000000000") for MVP and local testing;
+     * replace with gateway/Security Context integration when available.
+     *
+     * @return an Optional containing the placeholder UUID used as the current auditor
      */
     @Bean
     public AuditorAware<UUID> auditorAware() {

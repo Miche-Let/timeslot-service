@@ -52,16 +52,17 @@ public class TimeSlotEntity extends BaseEntity {
     private Long version;
 
     /**
-     * 생성자.
-     * @param id 타임슬롯 ID
-     * @param restaurantId 식당 ID
-     * @param targetDate 타겟 날짜
-     * @param startTime 시작 시간
-     * @param endTime 종료 시간
-     * @param capacity 수용 인원
-     * @param remainingCapacity 잔여 수용 인원
-     * @param status 상태
-     * @param version 버전
+     * Constructs a TimeSlotEntity with all mapped fields.
+     *
+     * @param id               the time slot identifier
+     * @param restaurantId     the restaurant identifier
+     * @param targetDate       the date this time slot targets
+     * @param startTime        the start time of the time slot
+     * @param endTime          the end time of the time slot
+     * @param capacity         the total capacity for the time slot
+     * @param remainingCapacity the remaining capacity for the time slot
+     * @param status           the time slot status
+     * @param version          the optimistic lock version
      */
     @Builder
     public TimeSlotEntity(UUID id, UUID restaurantId, LocalDate targetDate,
