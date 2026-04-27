@@ -1,0 +1,19 @@
+package com.michelet.timeslotservice.config;
+
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.data.domain.AuditorAware;
+
+import java.util.Optional;
+import java.util.UUID;
+
+@Configuration
+public class AuditorConfig {
+
+    @Bean
+    public AuditorAware<UUID> auditorAware() {
+        // MVP 및 로컬 테스트 통과를 위한 임시 UUID 제공
+        // TODO: 추후 게이트웨이/Security Context 연동 시 수정
+        return () -> Optional.of(UUID.fromString("00000000-0000-0000-0000-000000000000"));
+    }
+}
