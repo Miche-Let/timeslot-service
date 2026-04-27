@@ -1,0 +1,62 @@
+package com.michelet.timeslotservice.service;
+
+import com.michelet.common.exception.BusinessException;
+import com.michelet.timeslotservice.domain.TimeSlot;
+import com.michelet.timeslotservice.exception.TimeSlotErrorCode;
+import com.michelet.timeslotservice.repository.TimeSlotRepository;
+import com.michelet.timeslotservice.repository.entity.TimeSlotEntity;
+import com.michelet.timeslotservice.repository.mapper.TimeSlotMapper;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDate;
+import java.util.List;
+import java.util.UUID;
+import java.util.stream.Collectors;
+
+/**
+ * 타임슬롯과 관련된 핵심 비즈니스 로직을 처리하는 서비스 클래스.
+ */
+@Slf4j
+@Service
+@RequiredArgsConstructor
+public class TimeSlotService {
+
+    private final TimeSlotRepository timeSlotRepository;
+    private final TimeSlotMapper timeSlotMapper;
+
+    /**
+     * 특정 식당의 지정된 날짜에 열려있는 타임슬롯 목록을 조회합니다.
+     */
+    @Transactional(readOnly = true)
+    public List<TimeSlot> getAvailableTimeSlots(UUID restaurantId, LocalDate targetDate) {
+        return timeSlotRepository.findAllByRestaurantIdAndTargetDate(restaurantId, targetDate)
+                .stream()
+                .map(timeSlotMapper::toDomain)
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * 특정 타임슬롯의 예약 가능 인원을 차감합니다.
+     * 트랜잭션 종료 시 낙관적 락(@Version)을 통해 동시성 문제를 방어합니다.
+     */
+    @Transactional
+    public void deductCapacity(UUID timeSlotId, int requiredCapacity) {
+
+        TimeSlotEntity entity = timeSlotRepository.findById(timeSlotId)
+                .orElseThrow(() -> new BusinessException(TimeSlotErrorCode.TIME_SLOT_NOT_FOUND));
+
+        TimeSlot domain = timeSlotMapper.toDomain(entity);
+
+        domain.deduct(requiredCapacity);
+
+        TimeSlotEntity updatedEntity = timeSlotMapper.toEntity(domain);
+
+        timeSlotRepository.save(updatedEntity);
+        
+        log.info("타임슬롯 차감 성공: ID={}, 요청인원={}, 남은인원={}", 
+                timeSlotId, requiredCapacity, domain.getRemainingCapacity());
+    }
+}
