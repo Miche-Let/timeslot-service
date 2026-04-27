@@ -74,7 +74,7 @@ public class TimeSlotEntity extends BaseEntity {
         this.endTime = endTime;
         this.capacity = capacity;
         this.remainingCapacity = remainingCapacity;
-        this.status = status;
+        this.status = (status != null) ? status : TimeSlotStatus.OPENED;
         this.version = version;
     }
 }
