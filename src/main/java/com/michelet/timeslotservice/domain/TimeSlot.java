@@ -11,6 +11,10 @@ import java.util.UUID;
 import com.michelet.common.exception.BusinessException;
 import com.michelet.timeslotservice.exception.TimeSlotErrorCode;
 
+/**
+ * 타임슬롯 도메인 객체.
+ * 식당의 예약 가능한 특정 시간대와 수용 인원 상태를 관리합니다.
+ */
 @Getter
 public class TimeSlot {
     private final UUID id;
@@ -36,6 +40,14 @@ public class TimeSlot {
                     int remainingCapacity, TimeSlotStatus status, long version,
                     LocalDateTime createdAt, UUID createdBy, LocalDateTime updatedAt, 
                     UUID updatedBy, LocalDateTime deletedAt, UUID deletedBy) {
+        
+
+        if (capacity < 0 || remainingCapacity < 0) {
+            throw new BusinessException(TimeSlotErrorCode.INVALID_CAPACITY);
+        }
+        if (startTime != null && endTime != null && !startTime.isBefore(endTime)) {
+            throw new BusinessException(TimeSlotErrorCode.INVALID_TIME_RANGE);
+        }
         this.id = id;
         this.restaurantId = restaurantId;
         this.targetDate = targetDate;
@@ -54,7 +66,16 @@ public class TimeSlot {
         this.deletedBy = deletedBy;
     }
 
+    /**
+     * 타임슬롯의 예약 가능 인원을 차감합니다.
+     * @param requiredCapacity 차감할 인원 수
+     * @throws BusinessException 잔여 인원이 부족하거나 마감된 경우 발생
+     */
+    
     public void deduct(int requiredCapacity) {
+        if (requiredCapacity <= 0) {
+        throw new BusinessException(TimeSlotErrorCode.INVALID_CAPACITY_REQUEST);
+        }
         if (this.status == TimeSlotStatus.CLOSED) {
             throw new BusinessException(TimeSlotErrorCode.TIME_SLOT_CLOSED);
         }
