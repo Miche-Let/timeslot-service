@@ -3,6 +3,8 @@ package com.michelet.timeslotservice.repository;
 import com.michelet.timeslotservice.repository.entity.TimeSlotEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 
+import java.time.LocalDate;
+import java.util.List;
 import java.util.UUID;
 
 
@@ -11,5 +13,9 @@ import java.util.UUID;
  */
 public interface TimeSlotRepository extends JpaRepository<TimeSlotEntity, UUID> {
  
+    /**
+     * 특정 식당의 특정 날짜에 해당하는 모든 타임슬롯을 조회합니다.
+     */
+    List<TimeSlotEntity> findAllByRestaurantIdAndTargetDate(UUID restaurantId, LocalDate targetDate);
 
 }
