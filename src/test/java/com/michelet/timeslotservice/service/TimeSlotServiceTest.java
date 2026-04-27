@@ -77,7 +77,7 @@ class TimeSlotServiceTest {
         given(timeSlotMapper.toDomain(entity)).willReturn(domain);
 
         // When
-        List<TimeSlot> result = timeSlotService.getAvailableTimeSlots(restaurantId, targetDate);
+        List<TimeSlot> result = timeSlotService.getTimeSlotsByDate(restaurantId, targetDate);
 
         // Then
         assertThat(result).hasSize(1);

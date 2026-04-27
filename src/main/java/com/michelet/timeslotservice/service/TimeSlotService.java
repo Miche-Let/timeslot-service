@@ -27,11 +27,13 @@ public class TimeSlotService {
     private final TimeSlotRepository timeSlotRepository;
     private final TimeSlotMapper timeSlotMapper;
 
+
     /**
-     * 특정 식당의 지정된 날짜에 열려있는 타임슬롯 목록을 조회합니다.
+     * 특정 식당의 지정된 날짜(TargetDate)에 해당하는 전체 타임슬롯 목록을 조회합니다.
+     * (클라이언트 화면에서 마감된 슬롯을 비활성화 처리할 수 있도록 CLOSED 상태도 포함하여 반환)
      */
     @Transactional(readOnly = true)
-    public List<TimeSlot> getAvailableTimeSlots(UUID restaurantId, LocalDate targetDate) {
+    public List<TimeSlot> getTimeSlotsByDate(UUID restaurantId, LocalDate targetDate) { 
         return timeSlotRepository.findAllByRestaurantIdAndTargetDate(restaurantId, targetDate)
                 .stream()
                 .map(timeSlotMapper::toDomain)
