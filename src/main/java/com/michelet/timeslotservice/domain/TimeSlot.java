@@ -42,12 +42,14 @@ public class TimeSlot {
                     UUID updatedBy, LocalDateTime deletedAt, UUID deletedBy) {
         
 
-        if (capacity < 0 || remainingCapacity < 0) {
-            throw new BusinessException(TimeSlotErrorCode.INVALID_CAPACITY);
-        }
         if (startTime != null && endTime != null && !startTime.isBefore(endTime)) {
             throw new BusinessException(TimeSlotErrorCode.INVALID_TIME_RANGE);
         }
+
+        if (capacity <= 0 || remainingCapacity < 0 || remainingCapacity > capacity) {
+            throw new BusinessException(TimeSlotErrorCode.INVALID_CAPACITY);
+        }
+
         this.id = id;
         this.restaurantId = restaurantId;
         this.targetDate = targetDate;

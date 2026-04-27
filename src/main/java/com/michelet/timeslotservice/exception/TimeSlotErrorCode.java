@@ -23,11 +23,11 @@ public enum TimeSlotErrorCode implements ErrorCode {
     /** 유효하지 않은 수용 인원 요청 에러 */
     INVALID_CAPACITY_REQUEST("TS_004", 400, "유효하지 않은 수용 인원 요청입니다. 요청된 인원 수는 1 이상이어야 합니다."),
 
-    /** 수용 인원 음수 에러 */
-    INVALID_CAPACITY("TS_005", 400, "수용 인원은 음수일 수 없습니다."),
-
-    /** 유효하지 않은 시간 범위 에러 */
-    INVALID_TIME_RANGE("TS_006", 400, "시작 시간은 종료 시간보다 이전이어야 합니다.");
+    /** 수용 인원 설정 오류 */
+    INVALID_CAPACITY("TS_005", 400, "타임슬롯의 수용 인원 설정이 올바르지 않습니다."),
+    
+    /** 시간 범위 설정 오류 */
+    INVALID_TIME_RANGE("TS_006", 400, "시작 시간은 종료 시간보다 앞서야 합니다.");
 
     private final String code;
     private final int httpStatus;
