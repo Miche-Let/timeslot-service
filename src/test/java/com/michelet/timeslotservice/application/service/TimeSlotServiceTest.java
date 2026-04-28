@@ -1,12 +1,13 @@
-package com.michelet.timeslotservice.service;
+package com.michelet.timeslotservice.application.service;
 
 import com.michelet.common.exception.BusinessException;
 import com.michelet.timeslotservice.domain.TimeSlot;
 import com.michelet.timeslotservice.domain.TimeSlotStatus;
-import com.michelet.timeslotservice.exception.TimeSlotErrorCode;
-import com.michelet.timeslotservice.repository.TimeSlotRepository;
-import com.michelet.timeslotservice.repository.entity.TimeSlotEntity;
-import com.michelet.timeslotservice.repository.mapper.TimeSlotMapper;
+import com.michelet.timeslotservice.domain.exception.TimeSlotErrorCode;
+import com.michelet.timeslotservice.infrastructure.config.persistence.TimeSlotRepository;
+import com.michelet.timeslotservice.infrastructure.config.persistence.entity.TimeSlotEntity;
+import com.michelet.timeslotservice.infrastructure.config.persistence.mapper.TimeSlotMapper;
+
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

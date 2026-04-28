@@ -1,7 +1,8 @@
-package com.michelet.timeslotservice.repository;
+package com.michelet.timeslotservice.infrastructure.config.persistence;
 
-import com.michelet.timeslotservice.repository.entity.TimeSlotEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
+
+import com.michelet.timeslotservice.infrastructure.config.persistence.entity.TimeSlotEntity;
 
 import java.time.LocalDate;
 import java.util.List;

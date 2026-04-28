@@ -9,7 +9,7 @@ import java.time.LocalTime;
 import java.util.UUID;
 
 import com.michelet.common.exception.BusinessException;
-import com.michelet.timeslotservice.exception.TimeSlotErrorCode;
+import com.michelet.timeslotservice.domain.exception.TimeSlotErrorCode;
 
 /**
  * 타임슬롯 도메인 객체.

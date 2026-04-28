@@ -1,8 +1,10 @@
-package com.michelet.timeslotservice.repository;
+package com.michelet.timeslotservice.infrastructure.persistence;
 
-import com.michelet.timeslotservice.config.AuditorConfig;
 import com.michelet.timeslotservice.domain.TimeSlotStatus;
-import com.michelet.timeslotservice.repository.entity.TimeSlotEntity;
+import com.michelet.timeslotservice.infrastructure.config.AuditorConfig;
+import com.michelet.timeslotservice.infrastructure.config.persistence.TimeSlotRepository;
+import com.michelet.timeslotservice.infrastructure.config.persistence.entity.TimeSlotEntity;
+
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
