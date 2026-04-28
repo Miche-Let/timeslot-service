@@ -5,6 +5,8 @@ import com.michelet.timeslotservice.application.service.TimeSlotService;
 import com.michelet.timeslotservice.presentation.code.TimeSlotSuccessCode;
 import com.michelet.timeslotservice.presentation.dto.request.TimeSlotDeductCapacityRequest;
 import com.michelet.timeslotservice.presentation.dto.response.TimeSlotResponse;
+
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.*;
@@ -47,7 +49,7 @@ public class TimeSlotController {
     @PostMapping("/{timeSlotId}/deduct")
     public ApiResponse<Void> deductCapacity(
             @PathVariable UUID timeSlotId,
-            @RequestBody TimeSlotDeductCapacityRequest request) {
+            @Valid @RequestBody TimeSlotDeductCapacityRequest request) {
 
         timeSlotService.deductCapacity(timeSlotId, request.requiredCapacity());
         
