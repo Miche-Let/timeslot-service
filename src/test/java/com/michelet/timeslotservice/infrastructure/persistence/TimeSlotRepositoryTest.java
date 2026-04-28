@@ -1,4 +1,4 @@
-package com.michelet.timeslotservice.infrastructure.persistencce;
+package com.michelet.timeslotservice.infrastructure.persistence;
 
 import com.michelet.timeslotservice.domain.TimeSlotStatus;
 import com.michelet.timeslotservice.infrastructure.config.AuditorConfig;
