@@ -1,4 +1,4 @@
-package com.michelet.timeslotservice.config;
+package com.michelet.timeslotservice.infrastructure.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

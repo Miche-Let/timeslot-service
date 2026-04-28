@@ -1,4 +1,4 @@
-package com.michelet.timeslotservice.exception;
+package com.michelet.timeslotservice.domain.exception;
 
 import com.michelet.common.exception.ErrorCode;
 import lombok.Getter;
