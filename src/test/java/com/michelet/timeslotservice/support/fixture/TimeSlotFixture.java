@@ -55,18 +55,6 @@ public class TimeSlotFixture {
                 .build();
     }
 
-    public static TimeSlot createDomainWithDateTime(LocalDate date, LocalTime startTime, LocalTime endTime, int capacity, int remainingCapacity) {
-        return TimeSlot.builder()
-                .id(FIXTURE_ID)
-                .restaurantId(FIXTURE_RESTAURANT_ID)
-                .targetDate(date)
-                .startTime(startTime)
-                .endTime(endTime)
-                .capacity(capacity)
-                .remainingCapacity(remainingCapacity)
-                .status(TimeSlotStatus.OPENED)
-                .build();
-    }
 
     /**
      * 영속성(JPA Repository) 테스트 및 매퍼 검증을 위한 엔티티 객체를 생성합니다.
