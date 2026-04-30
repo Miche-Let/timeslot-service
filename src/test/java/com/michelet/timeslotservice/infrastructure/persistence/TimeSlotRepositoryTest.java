@@ -1,8 +1,5 @@
 package com.michelet.timeslotservice.infrastructure.persistence;
 
-import com.michelet.timeslotservice.infrastructure.config.persistence.TimeSlotRepository;
-import com.michelet.timeslotservice.infrastructure.config.persistence.entity.TimeSlotEntity;
-
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,6 +10,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.AuditorAware;
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
+
+import com.michelet.timeslotservice.infrastructure.persistence.entity.TimeSlotEntity;
 
 import java.util.Optional;
 import java.util.UUID;

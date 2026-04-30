@@ -1,4 +1,4 @@
-package com.michelet.timeslotservice.infrastructure.config.persistence.entity;
+package com.michelet.timeslotservice.infrastructure.persistence.entity;
 
 import com.michelet.common.entity.BaseEntity;
 import com.michelet.timeslotservice.domain.TimeSlotStatus;
