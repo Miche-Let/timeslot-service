@@ -6,6 +6,9 @@ import jakarta.validation.constraints.NotNull;
 import java.time.LocalDate;
 import java.time.LocalTime;
 
+import com.michelet.common.exception.BusinessException;
+import com.michelet.timeslotservice.domain.exception.TimeSlotErrorCode;
+
 /**
  * 관리자의 타임슬롯 일괄 생성 요청 데이터를 담는 DTO
  */
@@ -36,10 +39,14 @@ public record TimeSlotBulkCreateRequest(
      * 시작일이 종료일보다 늦지 않은지 검증합니다. (Null-safe 방어 추가)
      */
     public boolean isValidDateRange() {
-        if (startDate == null || endDate == null) {
-            return false; 
+        if (startDate == null || endDate == null) return false;
+        if (startDate.isAfter(endDate)) return false;
+
+        long daysBetween = java.time.temporal.ChronoUnit.DAYS.between(startDate, endDate);
+        if (daysBetween > 31) {
+            throw new BusinessException(TimeSlotErrorCode.DATE_RANGE_TOO_LARGE);
         }
-        return !startDate.isAfter(endDate);
+        return true;
     }
 
     /**
@@ -51,4 +58,6 @@ public record TimeSlotBulkCreateRequest(
         }
         return openTime.isBefore(closeTime);
     }
+
+    
 }

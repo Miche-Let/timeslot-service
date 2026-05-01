@@ -33,7 +33,10 @@ public enum TimeSlotErrorCode implements ErrorCode {
     INVALID_DATE_RANGE("TS_007", 400, "시작일은 종료일보다 늦을 수 없습니다."),
 
     /** 중복된 타임슬롯 생성 시도 에러 */
-    DUPLICATE_TIME_SLOT("TS_008", 409, "해당 시간에 이미 생성된 타임슬롯이 존재합니다.");
+    DUPLICATE_TIME_SLOT("TS_008", 409, "해당 시간에 이미 생성된 타임슬롯이 존재합니다."),
+
+    /** 날짜 범위가 너무 큰 경우 에러 */
+    DATE_RANGE_TOO_LARGE("TS_009", 400, "날짜 범위가 너무 큽니다. 최대 31일까지 허용됩니다.");
     
 
     private final String code;
