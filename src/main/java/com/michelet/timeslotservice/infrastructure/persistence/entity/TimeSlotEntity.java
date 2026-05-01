@@ -1,4 +1,4 @@
-package com.michelet.timeslotservice.infrastructure.config.persistence.entity;
+package com.michelet.timeslotservice.infrastructure.persistence.entity;
 
 import com.michelet.common.entity.BaseEntity;
 import com.michelet.timeslotservice.domain.TimeSlotStatus;
@@ -16,12 +16,20 @@ import java.util.UUID;
  * DB의 p_time_slot 테이블과 매핑되는 JPA 엔티티 클래스.
  */
 @Entity
-@Table(name = "p_time_slot")
+@Table(name = "p_time_slot", 
+       uniqueConstraints = {
+           @UniqueConstraint(
+               name = "uk_time_slot_restaurant_date_start", 
+               columnNames = {"restaurant_id", "target_date", "start_time"}
+           )
+       }
+)
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class TimeSlotEntity extends BaseEntity {
 
     @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
     @Column(name = "time_slot_id")
     private UUID id;
 

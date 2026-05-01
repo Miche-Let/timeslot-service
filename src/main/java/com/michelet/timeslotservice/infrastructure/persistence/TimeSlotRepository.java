@@ -1,8 +1,8 @@
-package com.michelet.timeslotservice.infrastructure.config.persistence;
+package com.michelet.timeslotservice.infrastructure.persistence;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 
-import com.michelet.timeslotservice.infrastructure.config.persistence.entity.TimeSlotEntity;
+import com.michelet.timeslotservice.infrastructure.persistence.entity.TimeSlotEntity;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -18,5 +18,10 @@ public interface TimeSlotRepository extends JpaRepository<TimeSlotEntity, UUID> 
      * 특정 식당의 특정 날짜에 해당하는 모든 타임슬롯을 조회합니다.
      */
     List<TimeSlotEntity> findAllByRestaurantIdAndTargetDate(UUID restaurantId, LocalDate targetDate);
+
+    /**
+     *  특정 식당의 특정 기간 내 타임슬롯을 모두 조회합니다.
+     */ 
+    List<TimeSlotEntity> findAllByRestaurantIdAndTargetDateBetween(UUID restaurantId, LocalDate startDate, LocalDate endDate);
 
 }

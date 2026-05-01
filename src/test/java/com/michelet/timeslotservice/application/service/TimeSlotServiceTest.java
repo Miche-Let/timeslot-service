@@ -3,24 +3,30 @@ package com.michelet.timeslotservice.application.service;
 import com.michelet.common.exception.BusinessException;
 import com.michelet.timeslotservice.domain.TimeSlot;
 import com.michelet.timeslotservice.domain.exception.TimeSlotErrorCode;
-import com.michelet.timeslotservice.infrastructure.config.persistence.TimeSlotRepository;
-import com.michelet.timeslotservice.infrastructure.config.persistence.entity.TimeSlotEntity;
-import com.michelet.timeslotservice.infrastructure.config.persistence.mapper.TimeSlotMapper;
+import com.michelet.timeslotservice.infrastructure.persistence.TimeSlotRepository;
+import com.michelet.timeslotservice.infrastructure.persistence.entity.TimeSlotEntity;
+import com.michelet.timeslotservice.infrastructure.persistence.mapper.TimeSlotMapper;
+import com.michelet.timeslotservice.presentation.dto.request.TimeSlotBulkCreateRequest;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.List;
 import java.util.Optional;
 
 import static com.michelet.timeslotservice.support.fixture.TimeSlotFixture.*;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 /**
@@ -49,7 +55,7 @@ class TimeSlotServiceTest {
     @Test
     @DisplayName("특정 식당과 날짜의 예약 가능한 타임슬롯 목록을 정상적으로 조회한다.")
     void getAvailableTimeSlots_Success() {
-        // Given: 가짜 Repository가 반환할 대본(Stubbing)을 설정합니다.
+
         TimeSlotEntity entity = createEntity(4, 4);
         TimeSlot domain = createDomain(4, 4);
 
@@ -57,10 +63,8 @@ class TimeSlotServiceTest {
                 .willReturn(List.of(entity));
         given(timeSlotMapper.toDomain(entity)).willReturn(domain);
 
-        // When: 실제 서비스의 조회 로직을 실행합니다.
         List<TimeSlot> result = timeSlotService.getTimeSlotsByDate(FIXTURE_RESTAURANT_ID, FIXTURE_DATE);
 
-        // Then: 반환된 결과의 크기와 데이터가 정확한지 단언(Assert)합니다.
         assertThat(result).hasSize(1);
         assertThat(result.get(0).getRestaurantId()).isEqualTo(FIXTURE_RESTAURANT_ID);
     }
@@ -72,7 +76,6 @@ class TimeSlotServiceTest {
     @Test
     @DisplayName("타임슬롯의 수용 인원을 정상적으로 차감한다.")
     void deductCapacity_Success() {
-        // Given: 차감 전 상태(4명)와 차감 후 상태(2명)의 데이터를 준비하고 대본을 짭니다.
         TimeSlotEntity entity = createEntity(4, 4);
         TimeSlot domain = createDomain(4, 4);
         TimeSlotEntity updatedEntity = createEntity(4, 2);
@@ -81,11 +84,8 @@ class TimeSlotServiceTest {
         given(timeSlotMapper.toDomain(entity)).willReturn(domain);
         given(timeSlotMapper.toEntity(domain)).willReturn(updatedEntity);
 
-        // When: 2명 차감을 요청합니다.
         timeSlotService.deductCapacity(FIXTURE_ID, 2);
 
-        // Then: 도메인 객체의 인원이 2명으로 줄었는지 확인하고, 
-        // Repository의 save 메서드가 변경된 엔티티를 파라미터로 받아 호출되었는지 행위를 검증(verify)합니다.
         assertThat(domain.getRemainingCapacity()).isEqualTo(2);
         verify(timeSlotRepository).save(updatedEntity);
     }
@@ -97,10 +97,9 @@ class TimeSlotServiceTest {
     @Test
     @DisplayName("존재하지 않는 타임슬롯을 차감하려고 하면 예외가 발생한다.")
     void deductCapacity_Fail_NotFound() {
-        // Given: Repository 조회 시 빈 결과(Optional.empty)가 반환되도록 대본을 짭니다.
+
         given(timeSlotRepository.findById(FIXTURE_ID)).willReturn(Optional.empty());
 
-        // When & Then: 서비스 로직 실행 중 특정 예외(BusinessException)와 에러 메시지가 발생하는지 검증합니다.
         assertThatThrownBy(() -> timeSlotService.deductCapacity(FIXTURE_ID, 2))
                 .isInstanceOf(BusinessException.class)
                 .hasMessageContaining(TimeSlotErrorCode.TIME_SLOT_NOT_FOUND.getMessage());
@@ -113,16 +112,77 @@ class TimeSlotServiceTest {
     @Test
     @DisplayName("잔여 인원보다 많은 인원을 차감하려고 하면 예외가 발생한다.")
     void deductCapacity_Fail_NotEnoughCapacity() {
-        // Given: 잔여 인원이 1명뿐인 타임슬롯 데이터를 준비합니다.
+
         TimeSlotEntity entity = createEntity(4, 1);
         TimeSlot domain = createDomain(4, 1);
 
         given(timeSlotRepository.findById(FIXTURE_ID)).willReturn(Optional.of(entity));
         given(timeSlotMapper.toDomain(entity)).willReturn(domain);
 
-        // When & Then: 1명 남았는데 2명을 차감하려 할 때 오버부킹 방지 예외가 터지는지 검증합니다.
+
         assertThatThrownBy(() -> timeSlotService.deductCapacity(FIXTURE_ID, 2))
                 .isInstanceOf(BusinessException.class)
                 .hasMessageContaining(TimeSlotErrorCode.NOT_ENOUGH_CAPACITY.getMessage());
     }
+
+    /**
+     * 일괄 생성 로직 검증 (정상 흐름):
+     * 이중 루프(날짜, 시간)가 정상 작동하여, 지정된 기간과 간격에 맞는 
+     * 정확한 개수의 타임슬롯 엔티티가 Repository로 전달되는지 검증합니다.
+     */
+    @Test
+    @DisplayName("정상적인 조건이 주어지면, 날짜와 시간을 계산하여 알맞은 개수의 타임슬롯을 일괄 생성(saveAll)한다.")
+    void createTimeSlotsBulk_Success() {
+        LocalDate startDate = LocalDate.of(2026, 5, 1);
+        LocalDate endDate = LocalDate.of(2026, 5, 2);
+        LocalTime openTime = LocalTime.of(10, 0);
+        LocalTime closeTime = LocalTime.of(11, 0);
+
+        TimeSlotBulkCreateRequest request = new TimeSlotBulkCreateRequest(
+                startDate, endDate, openTime, closeTime, 30, 4
+        );
+
+        given(timeSlotMapper.toEntity(any(TimeSlot.class)))
+                .willReturn(createEntity(4, 4));
+
+        timeSlotService.createTimeSlotsBulk(FIXTURE_RESTAURANT_ID, request);
+
+        @SuppressWarnings("unchecked")
+        ArgumentCaptor<List<TimeSlotEntity>> captor = ArgumentCaptor.forClass(List.class);
+        
+        verify(timeSlotRepository, times(1)).saveAll(captor.capture());
+        
+        List<TimeSlotEntity> savedEntities = captor.getValue();
+        
+        assertThat(savedEntities).hasSize(4);
+    }
+
+    /**
+     * 일괄 생성 로직 검증
+     * 영업 마감 시간을 넘어서는 슬롯은 헬퍼 메서드에서 생성하지 않고 버리는지 검증합니다.
+     */
+    @Test
+    @DisplayName("생성될 타임슬롯의 종료 시간이 영업 마감 시간을 초과하면 해당 슬롯은 버려진다.")
+    void createTimeSlotsBulk_SkipExceedingTime() {
+
+        LocalDate targetDate = LocalDate.of(2026, 5, 1);
+        LocalTime openTime = LocalTime.of(10, 0);
+        LocalTime closeTime = LocalTime.of(10, 45);
+
+        TimeSlotBulkCreateRequest request = new TimeSlotBulkCreateRequest(
+                targetDate, targetDate, openTime, closeTime, 30, 4
+        );
+
+        given(timeSlotMapper.toEntity(any(TimeSlot.class)))
+                .willReturn(createEntity(4, 4));
+
+        timeSlotService.createTimeSlotsBulk(FIXTURE_RESTAURANT_ID, request);
+
+        @SuppressWarnings("unchecked")
+        ArgumentCaptor<List<TimeSlotEntity>> captor = ArgumentCaptor.forClass(List.class);
+        verify(timeSlotRepository).saveAll(captor.capture());
+
+        assertThat(captor.getValue()).hasSize(1);
+    }
+
 }

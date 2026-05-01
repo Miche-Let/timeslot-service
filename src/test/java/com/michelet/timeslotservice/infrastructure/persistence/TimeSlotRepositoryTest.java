@@ -1,8 +1,5 @@
 package com.michelet.timeslotservice.infrastructure.persistence;
 
-import com.michelet.timeslotservice.infrastructure.config.persistence.TimeSlotRepository;
-import com.michelet.timeslotservice.infrastructure.config.persistence.entity.TimeSlotEntity;
-
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,11 +11,11 @@ import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.AuditorAware;
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 
+import com.michelet.timeslotservice.infrastructure.persistence.entity.TimeSlotEntity;
+
 import java.util.Optional;
 import java.util.UUID;
 
-import static com.michelet.timeslotservice.support.fixture.TimeSlotFixture.FIXTURE_ID;
-import static com.michelet.timeslotservice.support.fixture.TimeSlotFixture.createEntity;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
@@ -68,19 +65,23 @@ class TimeSlotRepositoryTest {
     @DisplayName("TimeSlotEntity can be saved and found by ID")
     void saveAndFindById_Success() {
         
-        // Given: 픽스처를 사용하여 검증에 필요한 최소한의 엔티티 객체를 준비합니다.
-        TimeSlotEntity entity = createEntity(4, 4);
+        TimeSlotEntity newEntity = TimeSlotEntity.builder()
 
-        // When: 데이터를 DB에 강제로 기록(Flush)하고, 영속성 컨텍스트(1차 캐시)를 초기화합니다.
-        // 이를 통해 다음 findById 호출 시 메모리가 아닌 실제 DB에서 쿼리를 통해 데이터를 가져오도록 강제합니다.
-        TimeSlotEntity saved = timeSlotRepository.saveAndFlush(entity); 
+                .restaurantId(UUID.randomUUID())
+                .targetDate(java.time.LocalDate.now())
+                .startTime(java.time.LocalTime.of(10, 0))
+                .endTime(java.time.LocalTime.of(11, 0))
+                .capacity(4)
+                .remainingCapacity(4)
+                .status(com.michelet.timeslotservice.domain.TimeSlotStatus.OPENED)
+                .build();
+
+        TimeSlotEntity saved = timeSlotRepository.saveAndFlush(newEntity); 
         entityManager.clear(); 
 
         TimeSlotEntity found = timeSlotRepository.findById(saved.getId()).orElseThrow();
 
-        // Then: DB에서 다시 꺼내온 데이터의 식별자가 일치하는지, 
-        // 그리고 JPA Auditing이 작동하여 생성 시간이 자동으로 찍혔는지 검증합니다.
-        assertThat(found.getId()).isEqualTo(FIXTURE_ID);
+        assertThat(found.getId()).isEqualTo(saved.getId());
         assertThat(found.getCreatedAt()).isNotNull(); 
     }
 }

@@ -2,7 +2,7 @@ package com.michelet.timeslotservice.support.fixture;
 
 import com.michelet.timeslotservice.domain.TimeSlot;
 import com.michelet.timeslotservice.domain.TimeSlotStatus;
-import com.michelet.timeslotservice.infrastructure.config.persistence.entity.TimeSlotEntity;
+import com.michelet.timeslotservice.infrastructure.persistence.entity.TimeSlotEntity;
 
 import java.time.LocalDate;
 import java.time.LocalTime;

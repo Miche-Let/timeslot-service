@@ -1,7 +1,7 @@
-package com.michelet.timeslotservice.infrastructure.config.persistence.mapper;
+package com.michelet.timeslotservice.infrastructure.persistence.mapper;
 
 import com.michelet.timeslotservice.domain.TimeSlot;
-import com.michelet.timeslotservice.infrastructure.config.persistence.entity.TimeSlotEntity;
+import com.michelet.timeslotservice.infrastructure.persistence.entity.TimeSlotEntity;
 
 import org.mapstruct.Mapper;
 import org.mapstruct.ReportingPolicy;
