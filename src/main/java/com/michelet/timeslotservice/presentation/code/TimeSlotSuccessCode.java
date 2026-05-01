@@ -8,7 +8,8 @@ import com.michelet.common.response.SuccessCode;
 public enum TimeSlotSuccessCode implements SuccessCode {
     
     INQUIRY_SUCCESS("TS_OK_001", "타임슬롯 조회가 완료되었습니다."),
-    DEDUCT_SUCCESS("TS_OK_002", "타임슬롯 예약 차감이 완료되었습니다.");
+    DEDUCT_SUCCESS("TS_OK_002", "타임슬롯 예약 차감이 완료되었습니다."),
+    BULK_CREATE_SUCCESS("TS_OK_003", "타임슬롯 일괄 생성이 완료되었습니다.");
 
     private final String code;
     private final String message;

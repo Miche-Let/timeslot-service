@@ -19,4 +19,9 @@ public interface TimeSlotRepository extends JpaRepository<TimeSlotEntity, UUID> 
      */
     List<TimeSlotEntity> findAllByRestaurantIdAndTargetDate(UUID restaurantId, LocalDate targetDate);
 
+    /**
+     *  특정 식당의 특정 기간 내 타임슬롯을 모두 조회합니다.
+     */ 
+    List<TimeSlotEntity> findAllByRestaurantIdAndTargetDateBetween(UUID restaurantId, LocalDate startDate, LocalDate endDate);
+
 }

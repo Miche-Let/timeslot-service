@@ -27,7 +27,14 @@ public enum TimeSlotErrorCode implements ErrorCode {
     INVALID_CAPACITY("TS_005", 400, "타임슬롯의 수용 인원 설정이 올바르지 않습니다."),
     
     /** 시간 범위 설정 오류 */
-    INVALID_TIME_RANGE("TS_006", 400, "시작 시간은 종료 시간보다 앞서야 합니다.");
+    INVALID_TIME_RANGE("TS_006", 400, "시작 시간은 종료 시간보다 앞서야 합니다."),
+
+    /** 날짜 범위 설정 오류 */
+    INVALID_DATE_RANGE("TS_007", 400, "시작일은 종료일보다 늦을 수 없습니다."),
+
+    /** 중복된 타임슬롯 생성 시도 에러 */
+    DUPLICATE_TIME_SLOT("TS_008", 409, "해당 시간에 이미 생성된 타임슬롯이 존재합니다.");
+    
 
     private final String code;
     private final int httpStatus;

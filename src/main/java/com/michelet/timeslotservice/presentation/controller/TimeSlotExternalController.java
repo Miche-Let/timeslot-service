@@ -7,25 +7,38 @@ import java.util.stream.Collectors;
 
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.michelet.common.exception.BusinessException;
 import com.michelet.common.response.ApiResponse;
 import com.michelet.timeslotservice.application.service.TimeSlotService;
+import com.michelet.timeslotservice.domain.exception.TimeSlotErrorCode;
 import com.michelet.timeslotservice.presentation.code.TimeSlotSuccessCode;
+import com.michelet.timeslotservice.presentation.dto.request.TimeSlotBulkCreateRequest;
 import com.michelet.timeslotservice.presentation.dto.response.TimeSlotResponse;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
+/**
+ * 프론트엔드(웹/앱) 클라이언트와 통신하는 외부 공개용 API 컨트롤러.
+ */
 @RestController
-@RequestMapping("/api/v1/timeslots")
+@RequestMapping("/api/v1") 
 @RequiredArgsConstructor
 public class TimeSlotExternalController {
 
     private final TimeSlotService timeSlotService;
     
-    @GetMapping
+    /**
+     * 특정 식당/날짜의 타임슬롯 목록을 조회합니다.
+     */
+    @GetMapping("/timeslots")
     public ApiResponse<List<TimeSlotResponse>> getTimeSlots(
             @RequestParam UUID restaurantId,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate targetDate) {
@@ -37,4 +50,29 @@ public class TimeSlotExternalController {
 
         return ApiResponse.ok(TimeSlotSuccessCode.INQUIRY_SUCCESS, responses);
     }
+
+    /**
+     * 특정 식당의 타임슬롯을 일괄 생성합니다. (관리자 전용)
+     * 
+     * @param restaurantId 식당 식별자
+     * @param request      일괄 생성 조건 (날짜, 시간, 인원 등)
+     */
+
+    @PostMapping("/restaurants/{restaurantId}/time-slots/bulk")
+    public ApiResponse<Void> createTimeSlotsBulk(
+            @PathVariable UUID restaurantId,
+            @Valid @RequestBody TimeSlotBulkCreateRequest request) {
+        
+        if (!request.isValidDateRange()) {
+            throw new BusinessException(TimeSlotErrorCode.INVALID_DATE_RANGE);
+        }
+        if (!request.isValidTimeRange()) {
+            throw new BusinessException(TimeSlotErrorCode.INVALID_TIME_RANGE);
+        }
+
+        timeSlotService.createTimeSlotsBulk(restaurantId, request);
+        
+        return ApiResponse.ok(TimeSlotSuccessCode.BULK_CREATE_SUCCESS, null);
+    }
+    
 }
