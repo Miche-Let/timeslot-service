@@ -151,7 +151,7 @@ class TimeSlotExternalControllerTest {
 
         TimeSlotBulkCreateRequest invalidRequest = new TimeSlotBulkCreateRequest(
                 LocalDate.of(2026, 5, 1), LocalDate.of(2036, 6, 1),
-                LocalTime.of(18, 0), LocalTime.of(17, 0),
+                LocalTime.of(9, 0), LocalTime.of(21, 0),
                 30, 4
         );
 
