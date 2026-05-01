@@ -81,7 +81,7 @@ class TimeSlotRepositoryTest {
 
         TimeSlotEntity found = timeSlotRepository.findById(saved.getId()).orElseThrow();
 
-        assertThat(found.getId()).isNotNull();
+        assertThat(found.getId()).isEqualTo(saved.getId());
         assertThat(found.getCreatedAt()).isNotNull(); 
     }
 }
