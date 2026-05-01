@@ -123,7 +123,15 @@ public class TimeSlotService {
         }
 
         if (!entitiesToSave.isEmpty()) {
-            timeSlotRepository.saveAll(entitiesToSave);
+            try {
+
+                timeSlotRepository.saveAll(entitiesToSave); 
+
+            } catch (org.springframework.dao.DataIntegrityViolationException e) {
+
+                throw new BusinessException(TimeSlotErrorCode.DUPLICATE_TIME_SLOT);
+                
+            }
         }
     }
 
