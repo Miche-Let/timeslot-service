@@ -139,4 +139,28 @@ class TimeSlotExternalControllerTest {
         .isInstanceOf(Exception.class)
         .hasCauseInstanceOf(BusinessException.class);
     }
+
+
+        /**
+        * DTO 내부의 논리적 모순(날짜 범위가 너무 큰 경우)이 
+        * Controller 진입 시점에서 잘 차단되는지 예외를 검증합니다.
+        */
+    @Test
+    @DisplayName("[External] 날짜 범위가 너무 크면 Controller에서 예외가 발생한다.")
+    void createTimeSlotsBulk_Fail_DateRangeTooLarge() throws Exception {
+
+        TimeSlotBulkCreateRequest invalidRequest = new TimeSlotBulkCreateRequest(
+                LocalDate.of(2026, 5, 1), LocalDate.of(2036, 6, 1),
+                LocalTime.of(18, 0), LocalTime.of(17, 0),
+                30, 4
+        );
+
+        assertThatThrownBy(() ->
+                mockMvc.perform(post("/api/v1/restaurants/{restaurantId}/time-slots/bulk", FIXTURE_RESTAURANT_ID)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(invalidRequest)))
+        )
+        .isInstanceOf(Exception.class)
+        .hasCauseInstanceOf(BusinessException.class);
+    }
 }
