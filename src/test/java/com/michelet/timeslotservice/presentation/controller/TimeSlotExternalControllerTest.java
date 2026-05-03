@@ -51,23 +51,30 @@ class TimeSlotExternalControllerTest {
     @Autowired
     private ObjectMapper objectMapper;
 
+    /**
+     * 프론트엔드가 특정 식당의 특정 일자 달력을 클릭했을 때 호출되는 일간 조회 API를 검증합니다.
+     * 1. RESTful 표준에 맞게 수정된 URL (/restaurants/{id}/time-slots) 라우팅을 확인합니다.
+     * 2. 프론트엔드 UI 렌더링(예약 가능/불가 색상 처리 등)에 필수적인 필드
+     * (timeSlotId, remainingCapacity, status)가 JSON 응답에 누락 없이 매핑되는지 확인합니다.
+     */
     @Test
     @DisplayName("[External] 특정 식당/날짜의 타임슬롯 목록을 조회하면 200 상태코드와 규격에 맞게 반환된다.")
     void getTimeSlots_Success() throws Exception {
-
+        
         TimeSlot mockTimeSlot = createDomain(4, 4);
 
         given(timeSlotService.getTimeSlotsByDate(FIXTURE_RESTAURANT_ID, FIXTURE_DATE))
                 .willReturn(List.of(mockTimeSlot));
 
-        mockMvc.perform(get("/api/v1/timeslots")
-                        .param("restaurantId", FIXTURE_RESTAURANT_ID.toString())
+        mockMvc.perform(get("/api/v1/restaurants/{restaurantId}/time-slots", FIXTURE_RESTAURANT_ID)
                         .param("targetDate", FIXTURE_DATE.toString())
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.code").value("TS_OK_001"))
-                .andExpect(jsonPath("$.data[0].id").value(FIXTURE_ID.toString()));
+                .andExpect(jsonPath("$.data[0].timeSlotId").value(FIXTURE_ID.toString()))
+                .andExpect(jsonPath("$.data[0].remainingCapacity").value(4))
+                .andExpect(jsonPath("$.data[0].status").value("OPENED"));
     }
 
     /**
@@ -78,13 +85,13 @@ class TimeSlotExternalControllerTest {
     @DisplayName("[External] 타임슬롯 일괄 생성 요청 시 200 상태코드와 성공 응답 규격이 반환된다.")
     void createTimeSlotsBulk_Success() throws Exception {
         TimeSlotBulkCreateRequest request = new TimeSlotBulkCreateRequest(
-                LocalDate.of(2026, 5, 1),
-                LocalDate.of(2026, 5, 5),
-                LocalTime.of(9, 0),
-                LocalTime.of(21, 0),
-                30,
-                4
-        );
+            LocalDate.of(2099, 5, 10),
+            LocalDate.of(2099, 5, 15),
+            LocalTime.of(9, 0),
+            LocalTime.of(21, 0),
+            30,
+            4
+    );
 
         willDoNothing().given(timeSlotService).createTimeSlotsBulk(eq(FIXTURE_RESTAURANT_ID), any(TimeSlotBulkCreateRequest.class));
 
@@ -104,7 +111,7 @@ class TimeSlotExternalControllerTest {
     @DisplayName("[External] 시작일이 종료일보다 늦으면 Controller에서 예외가 발생한다.")
     void createTimeSlotsBulk_Fail_InvalidDateRange() throws Exception {
         TimeSlotBulkCreateRequest invalidRequest = new TimeSlotBulkCreateRequest(
-                LocalDate.of(2026, 5, 5), LocalDate.of(2026, 5, 1),
+                LocalDate.of(2099, 5, 5), LocalDate.of(2099, 5, 1),
                 LocalTime.of(9, 0), LocalTime.of(21, 0), 30, 4
         );
         
@@ -126,7 +133,7 @@ class TimeSlotExternalControllerTest {
     void createTimeSlotsBulk_Fail_InvalidTimeRange() throws Exception {
 
         TimeSlotBulkCreateRequest invalidRequest = new TimeSlotBulkCreateRequest(
-                LocalDate.of(2026, 5, 1), LocalDate.of(2026, 5, 5),
+                LocalDate.of(2099, 5, 1), LocalDate.of(2099, 5, 5),
                 LocalTime.of(18, 0), LocalTime.of(17, 0),
                 30, 4
         );
@@ -150,8 +157,8 @@ class TimeSlotExternalControllerTest {
     void createTimeSlotsBulk_Fail_DateRangeTooLarge() throws Exception {
 
         TimeSlotBulkCreateRequest invalidRequest = new TimeSlotBulkCreateRequest(
-                LocalDate.of(2026, 5, 1), LocalDate.of(2036, 6, 1),
-                LocalTime.of(9, 0), LocalTime.of(21, 0),
+                LocalDate.of(2099, 5, 1), LocalDate.of(2099, 6, 22),
+                LocalTime.of(18, 0), LocalTime.of(21, 0),
                 30, 4
         );
 
