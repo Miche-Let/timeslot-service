@@ -36,11 +36,11 @@ public class TimeSlotExternalController {
     private final TimeSlotService timeSlotService;
     
     /**
-     * 특정 식당/날짜의 타임슬롯 목록을 조회합니다.
+     * 특정 식당의 특정 일자(TargetDate) 타임슬롯 목록을 조회합니다.
      */
-    @GetMapping("/timeslots")
+    @GetMapping("/restaurants/{restaurantId}/time-slots")
     public ApiResponse<List<TimeSlotResponse>> getTimeSlots(
-            @RequestParam UUID restaurantId,
+            @PathVariable UUID restaurantId,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate targetDate) {
 
         List<TimeSlotResponse> responses = timeSlotService.getTimeSlotsByDate(restaurantId, targetDate)
