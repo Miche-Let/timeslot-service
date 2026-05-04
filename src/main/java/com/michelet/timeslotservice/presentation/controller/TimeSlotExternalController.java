@@ -6,6 +6,7 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -20,9 +21,12 @@ import com.michelet.timeslotservice.application.service.TimeSlotService;
 import com.michelet.timeslotservice.domain.exception.TimeSlotErrorCode;
 import com.michelet.timeslotservice.presentation.code.TimeSlotSuccessCode;
 import com.michelet.timeslotservice.presentation.dto.request.TimeSlotBulkCreateRequest;
+import com.michelet.timeslotservice.presentation.dto.response.TimeSlotCalendarResponse;
 import com.michelet.timeslotservice.presentation.dto.response.TimeSlotResponse;
 
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
 
 /**
@@ -31,6 +35,7 @@ import lombok.RequiredArgsConstructor;
 @RestController
 @RequestMapping("/api/v1") 
 @RequiredArgsConstructor
+@Validated
 public class TimeSlotExternalController {
 
     private final TimeSlotService timeSlotService;
@@ -75,4 +80,17 @@ public class TimeSlotExternalController {
         return ApiResponse.ok(TimeSlotSuccessCode.BULK_CREATE_SUCCESS, null);
     }
     
+    /**
+     * 특정 식당의 월간 달력(예약 가능 여부)을 조회합니다.
+     */
+    @GetMapping("/restaurants/{restaurantId}/time-slots/calendar")
+    public ApiResponse<List<TimeSlotCalendarResponse>> getCalendarByMonth(
+            @PathVariable UUID restaurantId,
+            @RequestParam @Min(2024) int year,
+            @RequestParam @Min(1) @Max(12) int month) {
+
+        List<TimeSlotCalendarResponse> responses = timeSlotService.getCalendarByMonth(restaurantId, year, month);
+
+        return ApiResponse.ok(TimeSlotSuccessCode.INQUIRY_SUCCESS, responses);
+    }
 }
