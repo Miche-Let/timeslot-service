@@ -15,6 +15,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.michelet.common.auth.core.annotation.RequireRole;
+import com.michelet.common.auth.core.enums.UserRole;
 import com.michelet.common.exception.BusinessException;
 import com.michelet.common.response.ApiResponse;
 import com.michelet.timeslotservice.application.service.TimeSlotService;
@@ -23,7 +25,6 @@ import com.michelet.timeslotservice.presentation.code.TimeSlotSuccessCode;
 import com.michelet.timeslotservice.presentation.dto.request.TimeSlotBulkCreateRequest;
 import com.michelet.timeslotservice.presentation.dto.response.TimeSlotCalendarResponse;
 import com.michelet.timeslotservice.presentation.dto.response.TimeSlotResponse;
-import com.michelet.timeslotservice.presentation.util.AuthUtil;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
@@ -64,13 +65,12 @@ public class TimeSlotExternalController {
      * @param request      일괄 생성 조건 (날짜, 시간, 인원 등)
      */
 
+    
     @PostMapping("/restaurants/{restaurantId}/time-slots/bulk")
+    @RequireRole({UserRole.OWNER, UserRole.MASTER})
     public ApiResponse<Void> createTimeSlotsBulk(
             @PathVariable UUID restaurantId,
-            @Valid @RequestBody TimeSlotBulkCreateRequest request) {
-        
-        
-        AuthUtil.verifyManagerRole();
+            @Valid @RequestBody TimeSlotBulkCreateRequest request) {    
 
         if (!request.isValidDateRange()) {
             throw new BusinessException(TimeSlotErrorCode.INVALID_DATE_RANGE);

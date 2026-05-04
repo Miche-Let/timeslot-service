@@ -8,6 +8,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.michelet.common.auth.core.annotation.RequireRole;
+import com.michelet.common.auth.core.enums.UserRole;
 import com.michelet.common.response.ApiResponse;
 import com.michelet.timeslotservice.application.service.TimeSlotService;
 import com.michelet.timeslotservice.presentation.code.TimeSlotSuccessCode;
@@ -31,7 +33,9 @@ public class TimeSlotInternalController {
      * @return 공통 응답 규격
      */
 
+    
     @PostMapping("/{timeSlotId}/deduct")
+    @RequireRole({UserRole.OWNER, UserRole.MASTER})
     public ApiResponse<Void> deductCapacity(
             @PathVariable UUID timeSlotId, 
             @Valid @RequestBody TimeSlotDeductCapacityRequest request) {
