@@ -20,6 +20,7 @@ import com.michelet.timeslotservice.application.service.TimeSlotService;
 import com.michelet.timeslotservice.domain.exception.TimeSlotErrorCode;
 import com.michelet.timeslotservice.presentation.code.TimeSlotSuccessCode;
 import com.michelet.timeslotservice.presentation.dto.request.TimeSlotBulkCreateRequest;
+import com.michelet.timeslotservice.presentation.dto.response.TimeSlotCalendarResponse;
 import com.michelet.timeslotservice.presentation.dto.response.TimeSlotResponse;
 
 import jakarta.validation.Valid;
@@ -75,4 +76,17 @@ public class TimeSlotExternalController {
         return ApiResponse.ok(TimeSlotSuccessCode.BULK_CREATE_SUCCESS, null);
     }
     
+    /**
+     * 특정 식당의 월간 달력(예약 가능 여부)을 조회합니다.
+     */
+    @GetMapping("/restaurants/{restaurantId}/time-slots/calendar")
+    public ApiResponse<List<TimeSlotCalendarResponse>> getCalendarByMonth(
+            @PathVariable UUID restaurantId,
+            @RequestParam int year,
+            @RequestParam int month) {
+
+        List<TimeSlotCalendarResponse> responses = timeSlotService.getCalendarByMonth(restaurantId, year, month);
+
+        return ApiResponse.ok(TimeSlotSuccessCode.INQUIRY_SUCCESS, responses);
+    }
 }

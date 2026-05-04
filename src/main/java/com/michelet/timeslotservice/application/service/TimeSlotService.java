@@ -8,6 +8,7 @@ import com.michelet.timeslotservice.infrastructure.persistence.TimeSlotRepositor
 import com.michelet.timeslotservice.infrastructure.persistence.entity.TimeSlotEntity;
 import com.michelet.timeslotservice.infrastructure.persistence.mapper.TimeSlotMapper;
 import com.michelet.timeslotservice.presentation.dto.request.TimeSlotBulkCreateRequest;
+import com.michelet.timeslotservice.presentation.dto.response.TimeSlotCalendarResponse;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -133,6 +134,42 @@ public class TimeSlotService {
                 
             }
         }
+    }
+
+
+    /**
+     * 특정 식당의 특정 연/월 달력(예약 가능 여부)을 조회합니다.
+     * * @param restaurantId 식당 식별자
+     * @param year         조회 연도
+     * @param month        조회 월
+     * @return 일자별 예약 가능 상태 목록 (1일부터 말일까지 빠짐없이 반환)
+     */
+    @Transactional(readOnly = true)
+    public List<TimeSlotCalendarResponse> getCalendarByMonth(UUID restaurantId, int year, int month) {
+        
+        java.time.YearMonth yearMonth = java.time.YearMonth.of(year, month);
+        LocalDate startDate = yearMonth.atDay(1);
+        LocalDate endDate = yearMonth.atEndOfMonth();
+
+        List<TimeSlotEntity> monthlySlots = timeSlotRepository.findAllByRestaurantIdAndTargetDateBetween(
+                restaurantId, startDate, endDate
+        );
+
+        java.util.Map<LocalDate, List<TimeSlotEntity>> slotsByDate = monthlySlots.stream()
+                .collect(Collectors.groupingBy(TimeSlotEntity::getTargetDate));
+
+        List<TimeSlotCalendarResponse> calendar = new ArrayList<>();
+        for (LocalDate date = startDate; !date.isAfter(endDate); date = date.plusDays(1)) {
+            
+            List<TimeSlotEntity> dailySlots = slotsByDate.getOrDefault(date, java.util.Collections.emptyList());
+            
+            boolean isOpened = dailySlots.stream()
+                    .anyMatch(slot -> slot.getStatus() == TimeSlotStatus.OPENED);
+            
+            calendar.add(TimeSlotCalendarResponse.of(date, isOpened));
+        }
+
+        return calendar;
     }
 
 }
