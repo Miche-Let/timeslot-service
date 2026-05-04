@@ -27,7 +27,7 @@ public class TimeSlotFixture {
     public static final UUID FIXTURE_RESTAURANT_ID = UUID.fromString("22222222-2222-2222-2222-222222222222");
     
     /** 고정된 타겟 날짜 (테스트 기준일). */
-    public static final LocalDate FIXTURE_DATE = LocalDate.of(2026, 5, 2);
+    public static final LocalDate FIXTURE_DATE = LocalDate.of(2099, 12, 1);
     
     /** 고정된 시작 시간. */
     public static final LocalTime FIXTURE_START_TIME = LocalTime.of(12, 0);
