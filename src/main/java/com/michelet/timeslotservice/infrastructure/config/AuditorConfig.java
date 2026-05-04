@@ -26,7 +26,11 @@ public class AuditorConfig {
             var context = UserContextHolder.get();
             
             if (context != null && context.userId() != null) {
-                return Optional.of(UUID.fromString(context.userId()));
+                try {
+                    return Optional.of(UUID.fromString(context.userId()));
+                } catch (IllegalArgumentException e) {
+                    return Optional.empty();
+                }
             }
             
             return Optional.empty();
