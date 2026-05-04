@@ -6,6 +6,7 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -24,6 +25,8 @@ import com.michelet.timeslotservice.presentation.dto.response.TimeSlotCalendarRe
 import com.michelet.timeslotservice.presentation.dto.response.TimeSlotResponse;
 
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
 
 /**
@@ -32,6 +35,7 @@ import lombok.RequiredArgsConstructor;
 @RestController
 @RequestMapping("/api/v1") 
 @RequiredArgsConstructor
+@Validated
 public class TimeSlotExternalController {
 
     private final TimeSlotService timeSlotService;
@@ -82,8 +86,8 @@ public class TimeSlotExternalController {
     @GetMapping("/restaurants/{restaurantId}/time-slots/calendar")
     public ApiResponse<List<TimeSlotCalendarResponse>> getCalendarByMonth(
             @PathVariable UUID restaurantId,
-            @RequestParam int year,
-            @RequestParam int month) {
+            @RequestParam @Min(2024) int year,
+            @RequestParam @Min(1) @Max(12) int month) {
 
         List<TimeSlotCalendarResponse> responses = timeSlotService.getCalendarByMonth(restaurantId, year, month);
 
