@@ -2,6 +2,7 @@ package com.michelet.timeslotservice.application.service;
 
 import com.michelet.common.exception.BusinessException;
 import com.michelet.timeslotservice.domain.TimeSlot;
+import com.michelet.timeslotservice.domain.TimeSlotStatus;
 import com.michelet.timeslotservice.domain.exception.TimeSlotErrorCode;
 import com.michelet.timeslotservice.infrastructure.persistence.TimeSlotRepository;
 import com.michelet.timeslotservice.infrastructure.persistence.entity.TimeSlotEntity;
@@ -183,6 +184,44 @@ class TimeSlotServiceTest {
         verify(timeSlotRepository).saveAll(captor.capture());
 
         assertThat(captor.getValue()).hasSize(1);
+    }
+
+    /**
+     * 월간 달력 조회 로직 검증:
+     * 1. DB에 데이터가 있든 없든 1일부터 말일까지의 날짜 리스트가 꽉 채워져 반환되는지 확인합니다.
+     * 2. 해당 일자에 하나라도 OPENED 슬롯이 있으면 "OPENED", 모두 CLOSED이거나 데이터가 없으면 "CLOSED"로 정확히 집계되는지 검증합니다.
+     */
+    @Test
+    @DisplayName("특정 연/월 달력 조회 시 1일부터 말일까지의 예약 상태가 정확히 집계된다.")
+    void getCalendarByMonth_Success() {
+        int year = 2099;
+        int month = 5;
+        LocalDate startDate = LocalDate.of(year, month, 1);
+        LocalDate endDate = LocalDate.of(year, month, 31);
+
+        TimeSlotEntity openSlot = org.mockito.Mockito.mock(TimeSlotEntity.class);
+        given(openSlot.getTargetDate()).willReturn(LocalDate.of(2099, 5, 1));
+        given(openSlot.getStatus()).willReturn(TimeSlotStatus.OPENED);
+
+        TimeSlotEntity closedSlot = org.mockito.Mockito.mock(TimeSlotEntity.class);
+        given(closedSlot.getTargetDate()).willReturn(LocalDate.of(2099, 5, 2));
+        given(closedSlot.getStatus()).willReturn(TimeSlotStatus.CLOSED);
+
+        given(timeSlotRepository.findAllByRestaurantIdAndTargetDateBetween(FIXTURE_RESTAURANT_ID, startDate, endDate))
+                .willReturn(List.of(openSlot, closedSlot));
+
+        var result = timeSlotService.getCalendarByMonth(FIXTURE_RESTAURANT_ID, year, month);
+
+        assertThat(result).hasSize(31);
+        
+        assertThat(result.get(0).date()).isEqualTo(LocalDate.of(2099, 5, 1));
+        assertThat(result.get(0).status()).isEqualTo("OPENED");
+
+        assertThat(result.get(1).date()).isEqualTo(LocalDate.of(2099, 5, 2));
+        assertThat(result.get(1).status()).isEqualTo("CLOSED");
+
+        assertThat(result.get(2).date()).isEqualTo(LocalDate.of(2099, 5, 3));
+        assertThat(result.get(2).status()).isEqualTo("CLOSED");
     }
 
 }

@@ -5,6 +5,7 @@ import com.michelet.common.exception.BusinessException;
 import com.michelet.timeslotservice.application.service.TimeSlotService;
 import com.michelet.timeslotservice.domain.TimeSlot;
 import com.michelet.timeslotservice.presentation.dto.request.TimeSlotBulkCreateRequest;
+import com.michelet.timeslotservice.presentation.dto.response.TimeSlotCalendarResponse;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -169,5 +170,35 @@ class TimeSlotExternalControllerTest {
         )
         .isInstanceOf(Exception.class)
         .hasCauseInstanceOf(BusinessException.class);
+    }
+
+
+    /**
+     * 프론트엔드의 월간 달력 조회(GET) 요청이 
+     * 적절한 URL 경로와 파라미터를 타고 들어와 정상 응답(200 OK)과 달력 데이터를 반환하는지 검증합니다.
+     */
+    @Test
+    @DisplayName("[External] 특정 식당의 월간 달력 조회 시 200 상태코드와 규격에 맞는 데이터가 반환된다.")
+    void getCalendarByMonth_Success() throws Exception {
+        int year = 2099;
+        int month = 5;
+        
+        TimeSlotCalendarResponse responseDay1 = new TimeSlotCalendarResponse(LocalDate.of(year, month, 1), "OPENED");
+        TimeSlotCalendarResponse responseDay2 = new TimeSlotCalendarResponse(LocalDate.of(year, month, 2), "CLOSED");
+        
+        given(timeSlotService.getCalendarByMonth(FIXTURE_RESTAURANT_ID, year, month))
+                .willReturn(List.of(responseDay1, responseDay2));
+
+        mockMvc.perform(get("/api/v1/restaurants/{restaurantId}/time-slots/calendar", FIXTURE_RESTAURANT_ID)
+                        .param("year", String.valueOf(year))
+                        .param("month", String.valueOf(month))
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.code").value("TS_OK_001"))
+                .andExpect(jsonPath("$.data[0].date").value("2099-05-01"))
+                .andExpect(jsonPath("$.data[0].status").value("OPENED"))
+                .andExpect(jsonPath("$.data[1].date").value("2099-05-02"))
+                .andExpect(jsonPath("$.data[1].status").value("CLOSED"));
     }
 }
