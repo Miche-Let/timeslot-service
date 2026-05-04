@@ -36,7 +36,13 @@ public enum TimeSlotErrorCode implements ErrorCode {
     DUPLICATE_TIME_SLOT("TS_008", 409, "해당 시간에 이미 생성된 타임슬롯이 존재합니다."),
 
     /** 날짜 범위가 너무 큰 경우 에러 */
-    DATE_RANGE_TOO_LARGE("TS_009", 400, "날짜 범위가 너무 큽니다. 최대 31일까지 허용됩니다.");
+    DATE_RANGE_TOO_LARGE("TS_009", 400, "날짜 범위가 너무 큽니다. 최대 31일까지 허용됩니다."),
+
+    /** 인증 실패 에러 */
+    UNAUTHORIZED("TS_010", 401, "인증이 필요합니다."),
+
+    /** 권한 부족 에러 */
+    FORBIDDEN("TS_011", 403, "권한이 없습니다.");
     
 
     private final String code;

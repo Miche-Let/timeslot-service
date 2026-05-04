@@ -4,6 +4,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.domain.AuditorAware;
 
+import com.michelet.common.auth.webmvc.context.UserContextHolder;
+
 import java.util.Optional;
 import java.util.UUID;
 
@@ -15,13 +17,19 @@ import java.util.UUID;
 public class AuditorConfig {
 
     /**
-     * 현재 작업자의 UUID를 제공하는 AuditorAware 빈을 생성합니다.
+     * 현재 스레드 로컬(UserContextHolder)에서 작업자의 UUID를 꺼내어 JPA에 제공합니다.
      * @return UUID를 담은 Optional 객체
      */
     @Bean
     public AuditorAware<UUID> auditorAware() {
-        // MVP 및 로컬 테스트 통과를 위한 임시 UUID 제공
-        // TODO: 추후 게이트웨이/Security Context 연동 시 수정
-        return () -> Optional.of(UUID.fromString("00000000-0000-0000-0000-000000000000"));
+        return () -> {
+            var context = UserContextHolder.get();
+            
+            if (context != null && context.userId() != null) {
+                return Optional.of(UUID.fromString(context.userId()));
+            }
+            
+            return Optional.empty();
+        };
     }
 }

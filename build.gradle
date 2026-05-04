@@ -30,6 +30,7 @@ dependencies {
 	implementation 'org.springframework.cloud:spring-cloud-starter-openfeign'
 	implementation 'com.github.Miche-Let:common:dev-SNAPSHOT'
 	implementation 'org.mapstruct:mapstruct:1.6.3'
+	implementation 'com.github.Miche-Let:common-auth-webmvc:0.1.5'
 	
 	compileOnly 'org.projectlombok:lombok'
 	runtimeOnly 'org.postgresql:postgresql'
