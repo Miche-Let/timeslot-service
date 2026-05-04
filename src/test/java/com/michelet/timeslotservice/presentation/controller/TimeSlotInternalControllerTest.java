@@ -9,6 +9,7 @@ import com.michelet.common.exception.GlobalExceptionHandler;
 import com.michelet.timeslotservice.application.service.TimeSlotService;
 import com.michelet.timeslotservice.infrastructure.config.WebConfig;
 import com.michelet.timeslotservice.presentation.dto.request.TimeSlotDeductCapacityRequest;
+import com.michelet.timeslotservice.support.builder.TimeSlotTestBuilder;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -23,7 +24,6 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
-import static com.michelet.timeslotservice.support.fixture.TimeSlotFixture.FIXTURE_ID;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.willDoNothing;
@@ -36,10 +36,6 @@ import java.util.UUID;
 /**
  * [Internal API Test]
  * 시스템 내부 통신(Server to Server)을 담당하는 TimeSlotInternalController의 동작을 검증합니다.
- * <p>
- * 예약 차감(deduct)과 같이 외부로 노출되어서는 안 되는 핵심 변경 로직들이 
- * 올바른 경로(/internal/v1/...)를 통해 내부 규격에 맞게 작동하는지 확인하는 슬라이스 테스트입니다.
- * </p>
  */
 @WebMvcTest(
     controllers = TimeSlotInternalController.class,
@@ -72,15 +68,19 @@ class TimeSlotInternalControllerTest {
         UserContextHolder.clear();
     }
 
+    /**
+     * [Internal API Test] 타임슬롯 예약 인원 차감 성공 케이스
+     * @throws Exception
+     */
     @Test
     @DisplayName("[Internal] 타임슬롯 예약 인원을 차감하면 정상 응답을 반환한다.")
     void deductCapacity_Success() throws Exception {
-        // Given
-        TimeSlotDeductCapacityRequest request = new TimeSlotDeductCapacityRequest(2);
-        willDoNothing().given(timeSlotService).deductCapacity(eq(FIXTURE_ID), any(Integer.class));
 
-        // When & Then
-        mockMvc.perform(post("/internal/v1/timeslots/{timeSlotId}/deduct", FIXTURE_ID)
+        TimeSlotDeductCapacityRequest request = new TimeSlotDeductCapacityRequest(2);
+        
+        willDoNothing().given(timeSlotService).deductCapacity(eq(TimeSlotTestBuilder.DEFAULT_ID), any(Integer.class));
+
+        mockMvc.perform(post("/internal/v1/timeslots/{timeSlotId}/deduct", TimeSlotTestBuilder.DEFAULT_ID)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
