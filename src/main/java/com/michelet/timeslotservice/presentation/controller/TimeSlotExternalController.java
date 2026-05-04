@@ -23,6 +23,7 @@ import com.michelet.timeslotservice.presentation.code.TimeSlotSuccessCode;
 import com.michelet.timeslotservice.presentation.dto.request.TimeSlotBulkCreateRequest;
 import com.michelet.timeslotservice.presentation.dto.response.TimeSlotCalendarResponse;
 import com.michelet.timeslotservice.presentation.dto.response.TimeSlotResponse;
+import com.michelet.timeslotservice.presentation.util.AuthUtil;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
@@ -47,7 +48,7 @@ public class TimeSlotExternalController {
     public ApiResponse<List<TimeSlotResponse>> getTimeSlots(
             @PathVariable UUID restaurantId,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate targetDate) {
-
+                
         List<TimeSlotResponse> responses = timeSlotService.getTimeSlotsByDate(restaurantId, targetDate)
                 .stream()
                 .map(TimeSlotResponse::from)
@@ -68,13 +69,16 @@ public class TimeSlotExternalController {
             @PathVariable UUID restaurantId,
             @Valid @RequestBody TimeSlotBulkCreateRequest request) {
         
+        
+        AuthUtil.verifyManagerRole();
+
         if (!request.isValidDateRange()) {
             throw new BusinessException(TimeSlotErrorCode.INVALID_DATE_RANGE);
         }
         if (!request.isValidTimeRange()) {
             throw new BusinessException(TimeSlotErrorCode.INVALID_TIME_RANGE);
         }
-
+        
         timeSlotService.createTimeSlotsBulk(restaurantId, request);
         
         return ApiResponse.ok(TimeSlotSuccessCode.BULK_CREATE_SUCCESS, null);
