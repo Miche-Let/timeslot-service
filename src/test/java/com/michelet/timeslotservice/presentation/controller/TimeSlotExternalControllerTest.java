@@ -1,16 +1,27 @@
 package com.michelet.timeslotservice.presentation.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.michelet.common.auth.core.context.UserContext;
+import com.michelet.common.auth.core.enums.UserRole;
+import com.michelet.common.auth.webmvc.context.UserContextHolder;
+import com.michelet.common.auth.webmvc.interceptor.UserContextInterceptor;
 import com.michelet.common.exception.BusinessException;
+import com.michelet.common.exception.GlobalExceptionHandler;
 import com.michelet.timeslotservice.application.service.TimeSlotService;
 import com.michelet.timeslotservice.domain.TimeSlot;
+import com.michelet.timeslotservice.infrastructure.config.WebConfig;
 import com.michelet.timeslotservice.presentation.dto.request.TimeSlotBulkCreateRequest;
 import com.michelet.timeslotservice.presentation.dto.response.TimeSlotCalendarResponse;
 
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.FilterType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
@@ -18,6 +29,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
+import java.util.UUID;
 
 import static com.michelet.timeslotservice.support.fixture.TimeSlotFixture.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -40,7 +52,12 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * 데이터를 잘 변환하여 내려주는지 집중적으로 확인하는 슬라이스 테스트입니다.
  * </p>
  */
-@WebMvcTest(TimeSlotExternalController.class)
+@WebMvcTest(
+    controllers = TimeSlotExternalController.class,
+    includeFilters = @ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, classes = GlobalExceptionHandler.class),
+    excludeFilters = @ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, classes = WebConfig.class)
+)
+@AutoConfigureMockMvc(addFilters = false)
 class TimeSlotExternalControllerTest {
 
     @Autowired
@@ -51,6 +68,20 @@ class TimeSlotExternalControllerTest {
 
     @Autowired
     private ObjectMapper objectMapper;
+
+    @MockitoBean
+    private UserContextInterceptor userContextInterceptor;
+
+    @BeforeEach
+    void setUp() {
+        UserContext mockContext = new UserContext(UUID.randomUUID().toString(), UserRole.OWNER);
+        UserContextHolder.set(mockContext);
+    }
+
+    @AfterEach
+    void tearDown() {
+        UserContextHolder.clear();
+    }
 
     /**
      * 프론트엔드가 특정 식당의 특정 일자 달력을 클릭했을 때 호출되는 일간 조회 API를 검증합니다.
