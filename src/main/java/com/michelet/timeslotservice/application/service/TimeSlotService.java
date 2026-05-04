@@ -75,6 +75,7 @@ public class TimeSlotService {
     /**
         * 특정 식당의 타임슬롯을 일괄 생성합니다. (관리자 전용)
         * 
+        * @param userId       사용자 식별자
         * @param restaurantId 식당 식별자
         * @param request      일괄 생성 조건 (날짜, 시간, 인원 등)
      */

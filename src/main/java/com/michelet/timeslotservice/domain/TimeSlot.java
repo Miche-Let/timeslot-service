@@ -29,8 +29,8 @@ public class TimeSlot {
 
     private final LocalDateTime createdAt;
     private final UUID createdBy;
-    private final LocalDateTime updatedAt;
-    private final UUID updatedBy;
+    private LocalDateTime updatedAt;
+    private UUID updatedBy;
     private final LocalDateTime deletedAt;
     private final UUID deletedBy;
     /**
@@ -108,4 +108,5 @@ public class TimeSlot {
             this.status = TimeSlotStatus.CLOSED;
         }
     }
+
 }
