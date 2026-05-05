@@ -16,6 +16,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.michelet.common.auth.core.annotation.RequireRole;
+import com.michelet.common.auth.core.enums.UserRole;
 import com.michelet.common.exception.BusinessException;
 import com.michelet.common.response.ApiResponse;
 import com.michelet.timeslotservice.application.service.TimeSlotService;
@@ -63,11 +65,11 @@ public class TimeSlotExternalController {
      * 특정 식당의 타임슬롯을 일괄 생성합니다. (관리자 전용)
      */
     @PostMapping("/restaurants/{restaurantId}/time-slots/bulk")
+    @RequireRole({UserRole.OWNER, UserRole.MASTER})
     public ApiResponse<Void> createTimeSlotsBulk(
             @PathVariable UUID restaurantId,
             @Valid @RequestBody TimeSlotBulkCreateRequest request) {    
 
-        // 프레젠테이션 계층의 검증 유지
         if (!request.isValidDateRange()) {
             throw new BusinessException(TimeSlotErrorCode.INVALID_DATE_RANGE);
         }
@@ -98,6 +100,7 @@ public class TimeSlotExternalController {
             @RequestParam @Min(1) @Max(12) int month) {
 
         Map<LocalDate, TimeSlotStatus> calendarMap = timeSlotService.getCalendarByMonth(restaurantId, year, month);
+
 
         List<TimeSlotCalendarResponse> responses = calendarMap.entrySet().stream()
                 .map(entry -> TimeSlotCalendarResponse.of(
