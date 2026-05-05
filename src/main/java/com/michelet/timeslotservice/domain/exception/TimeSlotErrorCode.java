@@ -42,8 +42,10 @@ public enum TimeSlotErrorCode implements ErrorCode {
     UNAUTHORIZED("TS_010", 401, "인증이 필요합니다."),
 
     /** 권한 부족 에러 */
-    FORBIDDEN("TS_011", 403, "권한이 없습니다.");
+    FORBIDDEN("TS_011", 403, "권한이 없습니다."),
     
+    /** 유효하지 않은 간격 에러 */
+    INVALID_INTERVAL("TS_012", 400, "타임슬롯 생성 간격이 유효하지 않습니다. 양수여야 합니다.");
 
     private final String code;
     private final int httpStatus;

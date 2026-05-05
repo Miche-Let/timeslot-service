@@ -6,6 +6,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+import com.michelet.common.exception.BusinessException;
+import com.michelet.timeslotservice.domain.exception.TimeSlotErrorCode;
+
 /**
  * [도메인 서비스] 타임슬롯 일괄 생성의 복잡한 비즈니스 규칙을 캡슐화합니다.
  */
@@ -18,6 +21,10 @@ public class TimeSlotGenerator {
             UUID restaurantId, LocalDate startDate, LocalDate endDate,
             LocalTime openTime, LocalTime closeTime, int intervalMinutes, int capacity) {
 
+        if (intervalMinutes <= 0) {
+            throw new BusinessException(TimeSlotErrorCode.INVALID_INTERVAL);
+        }
+        
         List<TimeSlot> generatedSlots = new ArrayList<>();
         LocalDate currentDate = startDate;
 
