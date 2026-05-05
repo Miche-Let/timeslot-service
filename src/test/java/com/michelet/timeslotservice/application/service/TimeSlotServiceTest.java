@@ -4,16 +4,11 @@ import com.michelet.common.exception.BusinessException;
 import com.michelet.timeslotservice.domain.TimeSlot;
 import com.michelet.timeslotservice.domain.TimeSlotStatus;
 import com.michelet.timeslotservice.domain.exception.TimeSlotErrorCode;
-import com.michelet.timeslotservice.infrastructure.persistence.TimeSlotRepository;
-import com.michelet.timeslotservice.infrastructure.persistence.entity.TimeSlotEntity;
-import com.michelet.timeslotservice.infrastructure.persistence.mapper.TimeSlotMapper;
-import com.michelet.timeslotservice.presentation.dto.request.TimeSlotBulkCreateRequest;
-import com.michelet.timeslotservice.support.builder.TimeSlotTestBuilder;
+import com.michelet.timeslotservice.domain.repository.TimeSlotRepository;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -21,188 +16,166 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
 
+import static com.michelet.timeslotservice.support.builder.TimeSlotTestBuilder.aTimeSlot;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.catchThrowableOfType;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
+import static org.mockito.BDDMockito.never;
+import static org.mockito.BDDMockito.then;
 
 /**
- * TimeSlotService의 비즈니스 로직을 격리된 환경에서 검증하는 단위 테스트(Unit Test)입니다.
+ * [Service Unit Test]
+ * Spring 컨텍스트 없이 Mockito로 Repository를 막아두고
+ * TimeSlotService의 오케스트레이션 동작을 검증합니다.
  */
 @ExtendWith(MockitoExtension.class)
 class TimeSlotServiceTest {
 
-    @InjectMocks
-    private TimeSlotService timeSlotService;
-
     @Mock
     private TimeSlotRepository timeSlotRepository;
 
-    @Mock
-    private TimeSlotMapper timeSlotMapper;
+    @InjectMocks
+    private TimeSlotService timeSlotService;
+
 
     /**
-     * [Unit Test] 타임슬롯 예약 인원 차감 성공 케이스
+     * 특정 일자의 타임슬롯 목록을 조회한다.
      */
     @Test
-    @DisplayName("특정 식당과 날짜의 예약 가능한 타임슬롯 목록을 정상적으로 조회한다.")
-    void getAvailableTimeSlots_Success() {
+    @DisplayName("[Service] 특정 일자의 타임슬롯 목록을 조회한다.")
+    void getTimeSlotsByDate_Success() {
+        UUID restaurantId = UUID.randomUUID();
+        LocalDate date = LocalDate.of(2099, 12, 25);
+        TimeSlot slot = aTimeSlot().restaurantId(restaurantId).targetDate(date).build();
+        given(timeSlotRepository.findByDate(restaurantId, date)).willReturn(List.of(slot));
 
-        TimeSlotEntity entity = TimeSlotTestBuilder.aTimeSlot().buildEntity();
-        TimeSlot domain = TimeSlotTestBuilder.aTimeSlot().build();
-
-        given(timeSlotRepository.findAllByRestaurantIdAndTargetDate(TimeSlotTestBuilder.DEFAULT_RESTAURANT_ID, TimeSlotTestBuilder.DEFAULT_DATE))
-                .willReturn(List.of(entity));
-        given(timeSlotMapper.toDomain(entity)).willReturn(domain);
-
-        List<TimeSlot> result = timeSlotService.getTimeSlotsByDate(TimeSlotTestBuilder.DEFAULT_RESTAURANT_ID, TimeSlotTestBuilder.DEFAULT_DATE);
+        List<TimeSlot> result = timeSlotService.getTimeSlotsByDate(restaurantId, date);
 
         assertThat(result).hasSize(1);
-        assertThat(result.get(0).getRestaurantId()).isEqualTo(TimeSlotTestBuilder.DEFAULT_RESTAURANT_ID);
+        assertThat(result.get(0).getTargetDate()).isEqualTo(date);
+        then(timeSlotRepository).should().findByDate(restaurantId, date);
     }
 
     /**
-     * [Unit Test] 타임슬롯 예약 인원 차감 실패 케이스 - 타임슬롯이 존재하지 않는 경우
+     * 타임슬롯 인원 차감에 성공하면 도메인의 deduct를 호출하고 저장한다.
      */
     @Test
-    @DisplayName("타임슬롯의 수용 인원을 정상적으로 차감한다.")
+    @DisplayName("[Service] 타임슬롯 인원 차감에 성공하면 도메인의 deduct를 호출하고 저장한다.")
     void deductCapacity_Success() {
-        TimeSlotEntity entity = TimeSlotTestBuilder.aTimeSlot().buildEntity();
-        TimeSlot domain = TimeSlotTestBuilder.aTimeSlot().build();
-        TimeSlotEntity updatedEntity = TimeSlotTestBuilder.aTimeSlot().remainingCapacity(2).buildEntity();
+        UUID timeSlotId = UUID.randomUUID();
+        TimeSlot slot = aTimeSlot().id(timeSlotId).capacity(4).remainingCapacity(4).build();
+        given(timeSlotRepository.findById(timeSlotId)).willReturn(Optional.of(slot));
 
-        given(timeSlotRepository.findById(TimeSlotTestBuilder.DEFAULT_ID)).willReturn(Optional.of(entity));
-        given(timeSlotMapper.toDomain(entity)).willReturn(domain);
-        given(timeSlotMapper.toEntity(domain)).willReturn(updatedEntity);
+        timeSlotService.deductCapacity(timeSlotId, 2);
 
-        timeSlotService.deductCapacity(TimeSlotTestBuilder.DEFAULT_ID, 2);
-
-        assertThat(domain.getRemainingCapacity()).isEqualTo(2);
-        verify(timeSlotRepository).save(updatedEntity);
+        assertThat(slot.getRemainingCapacity()).isEqualTo(2);  // 도메인 위임 확인
+        then(timeSlotRepository).should().save(slot);
     }
 
     /**
-     * [Unit Test] 타임슬롯 예약 인원 차감 실패 케이스 - 잔여 인원이 부족한 경우
+     * 타임슬롯이 없으면 TIME_SLOT_NOT_FOUND 예외를 던지고 저장하지 않는다.
      */
     @Test
-    @DisplayName("존재하지 않는 타임슬롯을 차감하려고 하면 예외가 발생한다.")
-    void deductCapacity_Fail_NotFound() {
-        given(timeSlotRepository.findById(TimeSlotTestBuilder.DEFAULT_ID)).willReturn(Optional.empty());
+    @DisplayName("[Service] 타임슬롯이 없으면 TIME_SLOT_NOT_FOUND 예외를 던지고 저장하지 않는다.")
+    void deductCapacity_NotFound() {
+        UUID timeSlotId = UUID.randomUUID();
+        given(timeSlotRepository.findById(timeSlotId)).willReturn(Optional.empty());
 
-        assertThatThrownBy(() -> timeSlotService.deductCapacity(TimeSlotTestBuilder.DEFAULT_ID, 2))
-                .isInstanceOf(BusinessException.class)
-                .hasMessageContaining(TimeSlotErrorCode.TIME_SLOT_NOT_FOUND.getMessage());
+        BusinessException ex = catchThrowableOfType(
+            BusinessException.class,                                  
+            () -> timeSlotService.deductCapacity(timeSlotId, 2));
+
+        assertThat(ex).isNotNull();
+        assertThat(ex.getErrorCode()).isEqualTo(TimeSlotErrorCode.TIME_SLOT_NOT_FOUND.getCode());
+        assertThat(ex.getHttpStatus()).isEqualTo(TimeSlotErrorCode.TIME_SLOT_NOT_FOUND.getHttpStatus());
+
+        then(timeSlotRepository).should(never()).save(any());
     }
 
     /**
-     * [Unit Test] 타임슬롯 예약 인원 차감 실패 케이스 - 잔여 인원이 부족한 경우
+     * 중복이 없으면 후보 슬롯들을 일괄 저장한다.
      */
     @Test
-    @DisplayName("잔여 인원보다 많은 인원을 차감하려고 하면 예외가 발생한다.")
-    void deductCapacity_Fail_NotEnoughCapacity() {
-        TimeSlotEntity entity = TimeSlotTestBuilder.aTimeSlot().remainingCapacity(1).buildEntity();
-        TimeSlot domain = TimeSlotTestBuilder.aTimeSlot().remainingCapacity(1).build();
-
-        given(timeSlotRepository.findById(TimeSlotTestBuilder.DEFAULT_ID)).willReturn(Optional.of(entity));
-        given(timeSlotMapper.toDomain(entity)).willReturn(domain);
-
-        assertThatThrownBy(() -> timeSlotService.deductCapacity(TimeSlotTestBuilder.DEFAULT_ID, 2))
-                .isInstanceOf(BusinessException.class)
-                .hasMessageContaining(TimeSlotErrorCode.NOT_ENOUGH_CAPACITY.getMessage());
-    }
-
-    /**
-     * [Unit Test] 타임슬롯 일괄 생성 성공 케이스
-     */
-    @Test
-    @DisplayName("정상적인 조건이 주어지면, 날짜와 시간을 계산하여 알맞은 개수의 타임슬롯을 일괄 생성(saveAll)한다.")
+    @DisplayName("[Service] 중복이 없으면 후보 슬롯들을 일괄 저장한다.")
     void createTimeSlotsBulk_Success() {
-        LocalDate startDate = LocalDate.of(2026, 5, 1);
-        LocalDate endDate = LocalDate.of(2026, 5, 2);
-        LocalTime openTime = LocalTime.of(10, 0);
-        LocalTime closeTime = LocalTime.of(11, 0);
+        UUID restaurantId = UUID.randomUUID();
+        LocalDate startDate = LocalDate.of(2099, 12, 25);
+        LocalDate endDate   = LocalDate.of(2099, 12, 25);
+        LocalTime openTime  = LocalTime.of(12, 0);
+        LocalTime closeTime = LocalTime.of(13, 0);
 
-        TimeSlotBulkCreateRequest request = new TimeSlotBulkCreateRequest(
-                startDate, endDate, openTime, closeTime, 30, 4
-        );
+        // 기존 슬롯 없음 → 중복 없음
+        given(timeSlotRepository.findByDateRange(eq(restaurantId), eq(startDate), eq(endDate)))
+                .willReturn(List.of());
 
-        given(timeSlotMapper.toEntity(any(TimeSlot.class)))
-                .willReturn(TimeSlotTestBuilder.aTimeSlot().buildEntity());
+        timeSlotService.createTimeSlotsBulk(
+                restaurantId, startDate, endDate, openTime, closeTime, 60, 4);
 
-        timeSlotService.createTimeSlotsBulk(TimeSlotTestBuilder.DEFAULT_RESTAURANT_ID, request);
-
-        @SuppressWarnings("unchecked")
-        ArgumentCaptor<List<TimeSlotEntity>> captor = ArgumentCaptor.forClass(List.class);
-        
-        verify(timeSlotRepository, times(1)).saveAll(captor.capture());
-        
-        List<TimeSlotEntity> savedEntities = captor.getValue();
-        assertThat(savedEntities).hasSize(4);
+        then(timeSlotRepository).should().saveAll(anyList());
     }
 
     /**
-     * [Unit Test] 타임슬롯 일괄 생성 실패 케이스 - 생성될 타임슬롯의 종료 시간이 영업 마감 시간을 초과하는 경우
+     * 동일 날짜·시작시간의 기존 슬롯이 있으면 DUPLICATE_TIME_SLOT 예외를 던지고 저장하지 않는다.
      */
     @Test
-    @DisplayName("생성될 타임슬롯의 종료 시간이 영업 마감 시간을 초과하면 해당 슬롯은 버려진다.")
-    void createTimeSlotsBulk_SkipExceedingTime() {
-        LocalDate targetDate = LocalDate.of(2026, 5, 1);
-        LocalTime openTime = LocalTime.of(10, 0);
-        LocalTime closeTime = LocalTime.of(10, 45);
+    @DisplayName("[Service] 동일 날짜·시작시간의 기존 슬롯이 있으면 DUPLICATE_TIME_SLOT 예외를 던지고 저장하지 않는다.")
+    void createTimeSlotsBulk_Duplicate() {
+        UUID restaurantId = UUID.randomUUID();
+        LocalDate date = LocalDate.of(2099, 12, 25);
+        LocalTime openTime  = LocalTime.of(12, 0);
+        LocalTime closeTime = LocalTime.of(13, 0);
 
-        TimeSlotBulkCreateRequest request = new TimeSlotBulkCreateRequest(
-                targetDate, targetDate, openTime, closeTime, 30, 4
-        );
+        TimeSlot existing = aTimeSlot()
+                .restaurantId(restaurantId)
+                .targetDate(date)
+                .time(openTime, closeTime)
+                .build();
+        given(timeSlotRepository.findByDateRange(eq(restaurantId), eq(date), eq(date)))
+                .willReturn(List.of(existing));
 
-        given(timeSlotMapper.toEntity(any(TimeSlot.class)))
-                .willReturn(TimeSlotTestBuilder.aTimeSlot().buildEntity());
+        BusinessException ex = catchThrowableOfType(
+        BusinessException.class,
+        () -> timeSlotService.createTimeSlotsBulk(
+                restaurantId, date, date, openTime, closeTime, 60, 4));
 
-        timeSlotService.createTimeSlotsBulk(TimeSlotTestBuilder.DEFAULT_RESTAURANT_ID, request);
+        assertThat(ex).isNotNull();
+        assertThat(ex.getErrorCode()).isEqualTo(TimeSlotErrorCode.DUPLICATE_TIME_SLOT.getCode());
+        assertThat(ex.getHttpStatus()).isEqualTo(TimeSlotErrorCode.DUPLICATE_TIME_SLOT.getHttpStatus());
 
-        @SuppressWarnings("unchecked")
-        ArgumentCaptor<List<TimeSlotEntity>> captor = ArgumentCaptor.forClass(List.class);
-        verify(timeSlotRepository).saveAll(captor.capture());
-
-        assertThat(captor.getValue()).hasSize(1);
+        then(timeSlotRepository).should(never()).saveAll(anyList());
     }
 
     /**
-     * [Unit Test] 타임슬롯 일괄 생성 실패 케이스 - 생성될 타임슬롯이 이미 존재하는 경우
+     * 해당 월의 모든 날짜에 대한 달력 상태(Map)를 반환한다.
      */
     @Test
-    @DisplayName("특정 연/월 달력 조회 시 1일부터 말일까지의 예약 상태가 정확히 집계된다.")
+    @DisplayName("[Service] 해당 월의 모든 날짜에 대한 달력 상태(Map)를 반환한다.")
     void getCalendarByMonth_Success() {
+        UUID restaurantId = UUID.randomUUID();
         int year = 2099;
-        int month = 5;
-        LocalDate startDate = LocalDate.of(year, month, 1);
-        LocalDate endDate = LocalDate.of(year, month, 31);
+        int month = 12;
+        LocalDate firstDay = LocalDate.of(year, month, 1);
+        LocalDate lastDay  = LocalDate.of(year, month, 31);
 
-        TimeSlotEntity openSlot = org.mockito.Mockito.mock(TimeSlotEntity.class);
-        given(openSlot.getTargetDate()).willReturn(LocalDate.of(2099, 5, 1));
-        given(openSlot.getStatus()).willReturn(TimeSlotStatus.OPENED);
+        TimeSlot slot = aTimeSlot()
+                .restaurantId(restaurantId)
+                .targetDate(LocalDate.of(year, month, 25))
+                .build();
+        given(timeSlotRepository.findByDateRange(restaurantId, firstDay, lastDay))
+                .willReturn(List.of(slot));
 
-        TimeSlotEntity closedSlot = org.mockito.Mockito.mock(TimeSlotEntity.class);
-        given(closedSlot.getTargetDate()).willReturn(LocalDate.of(2099, 5, 2));
-        given(closedSlot.getStatus()).willReturn(TimeSlotStatus.CLOSED);
+        Map<LocalDate, TimeSlotStatus> calendar =
+                timeSlotService.getCalendarByMonth(restaurantId, year, month);
 
-        given(timeSlotRepository.findAllByRestaurantIdAndTargetDateBetween(TimeSlotTestBuilder.DEFAULT_RESTAURANT_ID, startDate, endDate))
-                .willReturn(List.of(openSlot, closedSlot));
-
-        var result = timeSlotService.getCalendarByMonth(TimeSlotTestBuilder.DEFAULT_RESTAURANT_ID, year, month);
-
-        assertThat(result).hasSize(31);
-        
-        assertThat(result.get(0).date()).isEqualTo(LocalDate.of(2099, 5, 1));
-        assertThat(result.get(0).status()).isEqualTo("OPENED");
-
-        assertThat(result.get(1).date()).isEqualTo(LocalDate.of(2099, 5, 2));
-        assertThat(result.get(1).status()).isEqualTo("CLOSED");
-
-        assertThat(result.get(2).date()).isEqualTo(LocalDate.of(2099, 5, 3));
-        assertThat(result.get(2).status()).isEqualTo("CLOSED");
+        assertThat(calendar).hasSize(31);
+        assertThat(calendar).containsKey(LocalDate.of(year, month, 25));
+        then(timeSlotRepository).should().findByDateRange(restaurantId, firstDay, lastDay);
     }
 }

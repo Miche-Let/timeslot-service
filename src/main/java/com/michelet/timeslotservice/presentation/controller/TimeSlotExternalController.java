@@ -2,6 +2,7 @@ package com.michelet.timeslotservice.presentation.controller;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -20,6 +21,7 @@ import com.michelet.common.auth.core.enums.UserRole;
 import com.michelet.common.exception.BusinessException;
 import com.michelet.common.response.ApiResponse;
 import com.michelet.timeslotservice.application.service.TimeSlotService;
+import com.michelet.timeslotservice.domain.TimeSlotStatus;
 import com.michelet.timeslotservice.domain.exception.TimeSlotErrorCode;
 import com.michelet.timeslotservice.presentation.code.TimeSlotSuccessCode;
 import com.michelet.timeslotservice.presentation.dto.request.TimeSlotBulkCreateRequest;
@@ -33,6 +35,7 @@ import lombok.RequiredArgsConstructor;
 
 /**
  * 프론트엔드(웹/앱) 클라이언트와 통신하는 외부 공개용 API 컨트롤러.
+ * HTTP 요청(DTO)을 해체하여 순수 데이터로 서비스에 전달하고, 서비스의 결과를 다시 DTO로 포장합니다.
  */
 @RestController
 @RequestMapping("/api/v1") 
@@ -60,12 +63,7 @@ public class TimeSlotExternalController {
 
     /**
      * 특정 식당의 타임슬롯을 일괄 생성합니다. (관리자 전용)
-     * 
-     * @param restaurantId 식당 식별자
-     * @param request      일괄 생성 조건 (날짜, 시간, 인원 등)
      */
-
-    
     @PostMapping("/restaurants/{restaurantId}/time-slots/bulk")
     @RequireRole({UserRole.OWNER, UserRole.MASTER})
     public ApiResponse<Void> createTimeSlotsBulk(
@@ -78,8 +76,16 @@ public class TimeSlotExternalController {
         if (!request.isValidTimeRange()) {
             throw new BusinessException(TimeSlotErrorCode.INVALID_TIME_RANGE);
         }
-        
-        timeSlotService.createTimeSlotsBulk(restaurantId, request);
+
+        timeSlotService.createTimeSlotsBulk(
+                restaurantId, 
+                request.startDate(), 
+                request.endDate(),
+                request.openTime(), 
+                request.closeTime(), 
+                request.intervalMinutes(), 
+                request.capacity()
+        );
         
         return ApiResponse.ok(TimeSlotSuccessCode.BULK_CREATE_SUCCESS, null);
     }
@@ -93,7 +99,16 @@ public class TimeSlotExternalController {
             @RequestParam @Min(2024) int year,
             @RequestParam @Min(1) @Max(12) int month) {
 
-        List<TimeSlotCalendarResponse> responses = timeSlotService.getCalendarByMonth(restaurantId, year, month);
+        Map<LocalDate, TimeSlotStatus> calendarMap = timeSlotService.getCalendarByMonth(restaurantId, year, month);
+
+
+        List<TimeSlotCalendarResponse> responses = calendarMap.entrySet().stream()
+                .sorted(Map.Entry.comparingByKey())
+                .map(entry -> TimeSlotCalendarResponse.of(
+                        entry.getKey(), 
+                        entry.getValue() == TimeSlotStatus.OPENED
+                ))
+                .collect(Collectors.toList());
 
         return ApiResponse.ok(TimeSlotSuccessCode.INQUIRY_SUCCESS, responses);
     }
