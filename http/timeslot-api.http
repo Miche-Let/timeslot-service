@@ -4,6 +4,7 @@
 @restaurantId = d4246628-b7da-47ab-95bb-a126395f0628
 @timeSlotId = b184211a-bd71-478e-8f14-ce889ba9db1d
 @ownerToken = {{ownerToken}}
+@userToken = {{userToken}}
 @X-User-Id = 550e8400-e29b-41d4-a716-446655440000
 @X-User-Role = OWNER
 @X-Internal-Token = {{X-Internal-Token}}
@@ -12,7 +13,7 @@
 ### 1. [외부 API] 특정 날짜의 타임슬롯 목록 조회
 GET {{gatewayUrl}}/api/v1/restaurants/{{restaurantId}}/time-slots?targetDate=2026-05-31
 Accept: application/json
-Authorization: Bearer {{ownerToken}}
+Authorization: Bearer {{userToken}}
 
 ### 2. [외부 API] 타임슬롯 일괄 생성 (관리자 전용)
 POST {{gatewayUrl}}/api/v1/restaurants/{{restaurantId}}/time-slots/bulk
@@ -31,7 +32,7 @@ Authorization: Bearer {{ownerToken}}
 
 ### 3. [외부 API] 월간 달력(예약 가능 여부) 조회
 GET {{gatewayUrl}}/api/v1/restaurants/{{restaurantId}}/time-slots/calendar?year=2026&month=5
-Authorization: Bearer {{ownerToken}}
+Authorization: Bearer {{userToken}}
 Accept: application/json
 
 
