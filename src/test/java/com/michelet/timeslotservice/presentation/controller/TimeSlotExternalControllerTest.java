@@ -86,7 +86,7 @@ class TimeSlotExternalControllerTest {
     @DisplayName("[GET] 특정 날짜의 타임슬롯 목록 조회 문서화")
     void getTimeSlots_Docs() throws Exception {
         UUID restaurantId = UUID.randomUUID();
-        LocalDate date = LocalDate.of(2026, 5, 5);
+        LocalDate date = LocalDate.of(2036, 5, 5);
         TimeSlot mockSlot = TimeSlotTestBuilder.aTimeSlot().targetDate(date).build();
 
         given(timeSlotService.getTimeSlotsByDate(restaurantId, date)).willReturn(List.of(mockSlot));
@@ -119,7 +119,7 @@ class TimeSlotExternalControllerTest {
     void createTimeSlotsBulk_Docs() throws Exception {
         UUID restaurantId = UUID.randomUUID();
         TimeSlotBulkCreateRequest request = new TimeSlotBulkCreateRequest(
-                LocalDate.of(2026, 5, 10), LocalDate.of(2026, 5, 15),
+                LocalDate.of(2036, 5, 10), LocalDate.of(2036, 5, 15),
                 LocalTime.of(9, 0), LocalTime.of(21, 0), 30, 4
         );
 
@@ -156,13 +156,13 @@ class TimeSlotExternalControllerTest {
     @DisplayName("[GET] 월간 달력 조회 문서화")
     void getCalendarByMonth_Docs() throws Exception {
         UUID restaurantId = UUID.randomUUID();
-        LocalDate date = LocalDate.of(2026, 5, 1);
+        LocalDate date = LocalDate.of(2036, 5, 1);
         
-        given(timeSlotService.getCalendarByMonth(any(), eq(2026), eq(5)))
+        given(timeSlotService.getCalendarByMonth(any(), eq(2036), eq(5)))
                 .willReturn(Map.of(date, TimeSlotStatus.OPENED));
 
         mockMvc.perform(get("/api/v1/restaurants/{restaurantId}/time-slots/calendar", restaurantId)
-                        .param("year", "2026")
+                        .param("year", "2036")
                         .param("month", "5")
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
@@ -171,13 +171,13 @@ class TimeSlotExternalControllerTest {
                                 parameterWithName("restaurantId").description("식당 고유 ID")
                         ),
                         queryParameters(
-                                parameterWithName("year").description("조회 연도 (예: 2026)"),
+                                parameterWithName("year").description("조회 연도 (예: 2036)"),
                                 parameterWithName("month").description("조회 월 (1~12)")
                         ),
                         relaxedResponseFields(
                                 fieldWithPath("success").description("요청 성공 여부"),
                                 fieldWithPath("data[].date").description("날짜 (YYYY-MM-DD)"),
-                                fieldWithPath("data[].status").description("해당 일자 예약 가능 여부 (true: 가능, false: 마감)")
+                                fieldWithPath("data[].status").description("해당 일자 예약 가능 여부 (true: OPENED, false: CLOSED)")
                         )
                 ));
     }
