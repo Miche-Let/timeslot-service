@@ -36,7 +36,7 @@ Accept: application/json
 
 
 ### 4. [내부 API] deductTimeSlotCapacity - 예약 시 타임슬롯의 남은 좌석 수 감소
-POST {{timeslotServiceUrl}}/internal/v1/timeslots/{{timeSlotId}}/deduct
+POST {{timeSlotServiceUrl}}/internal/v1/timeslots/{{timeSlotId}}/deduct
 Content-Type: application/json
 X-User-Id: {{X-User-Id}}
 X-User-Role: {{X-User-Role}}
