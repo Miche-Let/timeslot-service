@@ -10,9 +10,9 @@ import java.util.UUID;
 
 
 /**
- * 타임슬롯 데이터의 영속성(DB 저장/조회)을 관리하는 Spring Data JPA 리포지토리.
+ * [인프라 어댑터] JPA를 활용하여 TimeSlotEntity에 대한 CRUD 작업을 수행하는 리포지토리 인터페이스입니다.
  */
-public interface TimeSlotRepository extends JpaRepository<TimeSlotEntity, UUID> {
+public interface TimeSlotJpaRepository extends JpaRepository<TimeSlotEntity, UUID> {
  
     /**
      * 특정 식당의 특정 날짜에 해당하는 모든 타임슬롯을 조회합니다.
