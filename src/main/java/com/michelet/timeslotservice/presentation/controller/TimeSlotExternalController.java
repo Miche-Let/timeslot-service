@@ -103,9 +103,10 @@ public class TimeSlotExternalController {
 
 
         List<TimeSlotCalendarResponse> responses = calendarMap.entrySet().stream()
+                .sorted(Map.Entry.comparingByKey())
                 .map(entry -> TimeSlotCalendarResponse.of(
                         entry.getKey(), 
-                        entry.getValue() == TimeSlotStatus.OPENED // OPENED 상태인지 boolean으로 변환
+                        entry.getValue() == TimeSlotStatus.OPENED
                 ))
                 .collect(Collectors.toList());
 
