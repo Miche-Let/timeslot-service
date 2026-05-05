@@ -1,6 +1,6 @@
 ### 환경 변수 설정
 @gatewayUrl = http://localhost:19000
-@timeslotServiceUrl = http://localhost:19400
+@timeSlotServiceUrl = http://localhost:19400
 @restaurantId = d4246628-b7da-47ab-95bb-a126395f0628
 @timeSlotId = b184211a-bd71-478e-8f14-ce889ba9db1d
 @ownerToken = {{ownerToken}}
