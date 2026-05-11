@@ -25,7 +25,7 @@ public class TimeSlot {
     private final int capacity;
     private int remainingCapacity;
     private TimeSlotStatus status;
-    private final long version;
+    private final Long version;
 
     private final LocalDateTime createdAt;
     private final UUID createdBy;
@@ -54,7 +54,7 @@ public class TimeSlot {
     @Builder
     public TimeSlot(UUID id, UUID restaurantId, LocalDate targetDate, 
                     LocalTime startTime, LocalTime endTime, int capacity, 
-                    int remainingCapacity, TimeSlotStatus status, long version,
+                    int remainingCapacity, TimeSlotStatus status, Long version,
                     LocalDateTime createdAt, UUID createdBy, LocalDateTime updatedAt, 
                     UUID updatedBy, LocalDateTime deletedAt, UUID deletedBy) {
         
