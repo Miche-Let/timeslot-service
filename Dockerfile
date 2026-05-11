@@ -4,16 +4,22 @@ WORKDIR /app
 COPY gradlew .
 COPY gradle gradle
 COPY build.gradle settings.gradle ./
-COPY src src
 
 RUN chmod +x ./gradlew
-RUN ./gradlew bootJar --no-daemon
+
+RUN ./gradlew dependencies --no-daemon || true
+
+
+COPY src src
+
+
+RUN ./gradlew bootJar --no-daemon -x test -x asciidoctor
 
 FROM eclipse-temurin:21-jre
 WORKDIR /app
 
-COPY --from=builder /app/build/libs/*.jar app.jar
+COPY --from=builder /app/build/libs/*SNAPSHOT.jar app.jar
 
 EXPOSE 19400
 
-ENTRYPOINT ["java", "-Dspring.profiles.active=docker", "-jar", "/app/app.jar"]
+ENTRYPOINT ["java", "-jar", "/app/app.jar"]

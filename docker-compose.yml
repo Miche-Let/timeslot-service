@@ -1,25 +1,7 @@
-name: timeslot-infra
-
 services:
-  timeslot-postgres:
-    image: postgres:18
-    container_name: timeslot-postgres
-    restart: unless-stopped
+  timeslot-service:
+    build: .
     ports:
-      - "19410:5432"
+      - "19400:19400"
     environment:
-      POSTGRES_USER: admin
-      POSTGRES_PASSWORD: admin
-      POSTGRES_DB: timeslot_db
-      TZ: Asia/Seoul
-    volumes:
-      - timeslot-db-data:/var/lib/postgresql
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U admin -d timeslot_db"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
-volumes:
-  timeslot-db-data:
-    name: timeslot-db-data
+      - SPRING_PROFILES_ACTIVE=docker
