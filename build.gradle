@@ -5,6 +5,7 @@ plugins {
 	id 'org.asciidoctor.jvm.convert' version '3.3.2'
 }
 
+
 group = 'com.michelet'
 version = '0.0.1-SNAPSHOT'
 
@@ -70,7 +71,13 @@ asciidoctor {
     attributes 'snippets': snippetsDir
 }
 
+jar {
+    enabled = false
+}
+
 bootJar {
+	archiveFileName = 'app.jar'
+	
     dependsOn asciidoctor
     from ("${asciidoctor.outputDir}") {
         into 'static/docs'

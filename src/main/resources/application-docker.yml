@@ -1,0 +1,12 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://host.docker.internal:5432/michelet_db?currentSchema=timeslot_service
+
+eureka:
+  instance:
+    hostname: localhost
+    prefer-ip-address: false
+    
+  client:
+    service-url:
+      defaultZone: http://host.docker.internal:8761/eureka/

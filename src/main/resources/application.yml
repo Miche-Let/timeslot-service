@@ -21,7 +21,6 @@ spring:
         format_sql: true
         highlight_sql: true
 
-
 internal:
   auth:
     secret: ${SPRING_INTERNAL_AUTH_SECRET:michelet-internal-auth-secret-key-a8K2mQ9xLp4Vt7Rz1Nc}
