@@ -290,8 +290,8 @@ class TimeSlotExternalControllerTest {
 
 		// given
 		Map<LocalDate, TimeSlotStatus> mockServiceResponse = Map.of(
-                LocalDate.of(2026, 5, 25), TimeSlotStatus.OPENED,
-                LocalDate.of(2026, 5, 26), TimeSlotStatus.CLOSED
+                LocalDate.of(2036, 5, 25), TimeSlotStatus.OPENED,
+                LocalDate.of(2036, 5, 26), TimeSlotStatus.CLOSED
         );
 
 		given(timeSlotService.getCalendarByMonth(eq(restaurantId), eq(year), eq(month)))
@@ -303,9 +303,9 @@ class TimeSlotExternalControllerTest {
                         .param("month", String.valueOf(month))
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data[0].date").value("2026-05-25"))
+                .andExpect(jsonPath("$.data[0].date").value("2036-05-25"))
                 .andExpect(jsonPath("$.data[0].status").value("OPENED"))
-                .andExpect(jsonPath("$.data[1].date").value("2026-05-26"))
+                .andExpect(jsonPath("$.data[1].date").value("2036-05-26"))
                 .andExpect(jsonPath("$.data[1].status").value("CLOSED"))
 				.andDo(document("timeslot-get-calendar",
 					pathParameters(
@@ -332,7 +332,7 @@ class TimeSlotExternalControllerTest {
 	 * @throws Exception
 	 */
     @Test
-    @DisplayName("[External] 월간 달력 조회 시 2024년 미만의 값을 요청하면 400 Bad Request를 반환한다.")
+    @DisplayName("[External] 월간 달력 조회 시 2024년 미만의 값을 요청하면 현재 시스템 구조상 500 에러를 반환한다.")
     void getCalendarByMonth_Fail_InvalidYear() throws Exception {
         UUID restaurantId = UUID.randomUUID();
 
@@ -360,7 +360,7 @@ class TimeSlotExternalControllerTest {
 
         // when & then
         mockMvc.perform(get("/api/v1/restaurants/{restaurantId}/time-slots/calendar", restaurantId)
-                        .param("year", "2026")
+                        .param("year", "2036")
                         .param("month", "13")
                         .accept(MediaType.APPLICATION_JSON))
 				.andExpect(status().isInternalServerError())
