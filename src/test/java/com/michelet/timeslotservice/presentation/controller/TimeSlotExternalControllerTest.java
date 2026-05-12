@@ -92,12 +92,11 @@ class TimeSlotExternalControllerTest {
 	@DisplayName("[External] 특정 식당의 특정 일자 타임슬롯 목록 조회 API")
 	void getTimeSlots_Success() throws Exception {
 	UUID restaurantId = UUID.randomUUID();
-	UUID timeslotId = UUID.randomUUID();
 	LocalDate targetDate = LocalDate.of(2036, 5, 1);
 
 	List<TimeSlot> mockSlots = List.of(
 			TimeSlotTestBuilder.aTimeSlot()
-					.id(timeslotId)
+					.id(UUID.randomUUID())
 					.restaurantId(restaurantId)
 					.targetDate(targetDate)
 					.capacity(4)
@@ -105,7 +104,7 @@ class TimeSlotExternalControllerTest {
 					.status(TimeSlotStatus.OPENED)
 					.build(),
 			TimeSlotTestBuilder.aTimeSlot()
-					.id(timeslotId)
+					.id(UUID.randomUUID())
 					.restaurantId(restaurantId)
 					.targetDate(targetDate)
 					.capacity(4)
