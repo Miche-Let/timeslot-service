@@ -27,7 +27,7 @@ class TimeSlotApiEndToEndTest {
      * [E2E] 잘못된 날짜로 달력 조회를 요청하면 HTTP 400 에러와 함께 공통 에러 포맷이 반환된다.
      */
     @Test
-    @DisplayName("[E2E] 잘못된 날짜로 달력 조회를 요청하면 HTTP 400 에러와 함께 공통 에러 포맷이 반환된다.")
+    @DisplayName("[E2E] 잘못된 날짜로 달력 조회를 요청하면 에러와 함께 공통 에러 포맷이 반환된다.")
     void getCalendar_E2E_Fail_InvalidParameter() {
         // when
         ResponseEntity<String> response = restTemplate.getForEntity(
