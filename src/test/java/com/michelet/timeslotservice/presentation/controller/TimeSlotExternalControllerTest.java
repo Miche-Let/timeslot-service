@@ -29,7 +29,16 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.get;
-
+import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.post;
+import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.document;
+import static org.springframework.restdocs.request.RequestDocumentation.pathParameters;
+import static org.springframework.restdocs.request.RequestDocumentation.queryParameters;
+import static org.springframework.restdocs.request.RequestDocumentation.parameterWithName;
+import static org.springframework.restdocs.payload.PayloadDocumentation.requestFields;
+import static org.springframework.restdocs.payload.PayloadDocumentation.fieldWithPath;
+import static org.springframework.restdocs.payload.PayloadDocumentation.responseFields;
+import static org.springframework.restdocs.headers.HeaderDocumentation.requestHeaders;
+import static org.springframework.restdocs.headers.HeaderDocumentation.headerWithName;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -40,7 +49,6 @@ import java.util.UUID;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -113,7 +121,28 @@ class TimeSlotExternalControllerTest {
 	mockMvc.perform(get("/api/v1/restaurants/{restaurantId}/time-slots", restaurantId)
 					.param("targetDate", targetDate.toString())
 					.accept(MediaType.APPLICATION_JSON))
-			.andExpect(status().isOk());
+			.andExpect(status().isOk())
+			.andDo(document("timeslot-get-list",
+                    pathParameters(
+                            parameterWithName("restaurantId").description("조회할 대상 식당의 고유 UUID")
+                    ),
+                    queryParameters(
+							parameterWithName("targetDate").description("조회할 타임슬롯의 날짜 (형식: YYYY-MM-DD)")
+					),
+					responseFields(
+                            fieldWithPath("success").description("API 응답 성공 여부"),
+                            fieldWithPath("data").description("조회된 타임슬롯 데이터 목록"),
+                            fieldWithPath("data[].timeSlotId").description("타임슬롯 고유 UUID"),
+                            fieldWithPath("data[].startTime").description("타임슬롯 시작 시간"),
+                            fieldWithPath("data[].endTime").description("타임슬롯 종료 시간"),
+                            fieldWithPath("data[].capacity").description("슬롯당 수용 인원"),
+                            fieldWithPath("data[].remainingCapacity").description("남은 수용 인원"),
+							fieldWithPath("data[].status").description("타임슬롯 상태"),
+							fieldWithPath("code").description("응답 코드 (성공 시 null)"),
+							fieldWithPath("message").description("응답 메시지 (성공 시 null)"),
+							fieldWithPath("timestamp").description("응답 시간")
+                    )
+            ));
 	}
 
 	/**
@@ -161,7 +190,29 @@ class TimeSlotExternalControllerTest {
 	mockMvc.perform(post("/api/v1/restaurants/{restaurantId}/time-slots/bulk", restaurantId)
 					.contentType(MediaType.APPLICATION_JSON)
 					.content(objectMapper.writeValueAsString(request)))
-			.andExpect(status().isOk());
+			.andExpect(status().isOk())
+			.andDo(document("timeslot-create-bulk",
+					requestHeaders(
+                            headerWithName("Content-Type").description("요청 페이로드 데이터 타입 (application/json)")
+                    ),
+                    pathParameters(
+                            parameterWithName("restaurantId").description("일괄 생성할 대상 식당의 고유 UUID")
+                    ),
+                    requestFields(
+                            fieldWithPath("startDate").description("일괄 생성 시작일 (형식: YYYY-MM-DD)"),
+                            fieldWithPath("endDate").description("일괄 생성 종료일 (형식: YYYY-MM-DD)"),
+                            fieldWithPath("openTime").description("영업 시작 시간 (형식: HH:mm)"),
+                            fieldWithPath("closeTime").description("영업 종료 시간 (형식: HH:mm)"),
+                            fieldWithPath("intervalMinutes").description("타임슬롯 간격 (분 단위)"),
+                            fieldWithPath("capacity").description("슬롯당 수용 인원")
+                    ),
+					responseFields(
+						fieldWithPath("success").description("API 응답 성공 여부"),
+						fieldWithPath("code").description("응답 코드"),
+						fieldWithPath("message").description("응답 메시지"),
+						fieldWithPath("timestamp").description("응답 시간")
+					)
+            ));
 	}
 
 
@@ -255,7 +306,25 @@ class TimeSlotExternalControllerTest {
                 .andExpect(jsonPath("$.data[0].date").value("2026-05-25"))
                 .andExpect(jsonPath("$.data[0].status").value("OPENED"))
                 .andExpect(jsonPath("$.data[1].date").value("2026-05-26"))
-                .andExpect(jsonPath("$.data[1].status").value("CLOSED"));
+                .andExpect(jsonPath("$.data[1].status").value("CLOSED"))
+				.andDo(document("timeslot-get-calendar",
+					pathParameters(
+							parameterWithName("restaurantId").description("조회할 대상 식당의 고유 UUID")
+					),
+					queryParameters(
+							parameterWithName("year").description("조회할 달력의 연도 (형식: YYYY)"),
+							parameterWithName("month").description("조회할 달력의 월 (1~12)")
+					),
+					responseFields(
+						fieldWithPath("success").description("API 응답 성공 여부"),
+						fieldWithPath("data").description("조회된 달력 데이터 목록"),
+						fieldWithPath("data[].date").description("조회된 날짜"),
+						fieldWithPath("data[].status").description("조회된 날짜의 상태"),
+						fieldWithPath("code").description("응답 코드"),
+						fieldWithPath("message").description("응답 메시지 (성공 시 null)"),
+						fieldWithPath("timestamp").description("응답 시간")
+					)
+			));
     }
 
 	/**
