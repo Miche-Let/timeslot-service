@@ -18,9 +18,11 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.michelet.common.auth.core.annotation.RequireRole;
 import com.michelet.common.auth.core.enums.UserRole;
+import com.michelet.common.exception.BusinessException;
 import com.michelet.common.response.ApiResponse;
 import com.michelet.timeslotservice.application.service.TimeSlotService;
 import com.michelet.timeslotservice.domain.TimeSlotStatus;
+import com.michelet.timeslotservice.domain.exception.TimeSlotErrorCode;
 import com.michelet.timeslotservice.presentation.code.TimeSlotSuccessCode;
 import com.michelet.timeslotservice.presentation.dto.request.TimeSlotBulkCreateRequest;
 import com.michelet.timeslotservice.presentation.dto.response.TimeSlotCalendarResponse;
@@ -68,8 +70,12 @@ public class TimeSlotExternalController {
             @PathVariable UUID restaurantId,
             @Valid @RequestBody TimeSlotBulkCreateRequest request) {    
 
-        request.isValidDateRange(); 
-        request.isValidTimeRange();
+        if (!request.isValidDateRange()) {
+            throw new BusinessException(TimeSlotErrorCode.INVALID_TIME_RANGE);
+        }
+        if (!request.isValidTimeRange()) {
+            throw new BusinessException(TimeSlotErrorCode.INVALID_TIME_RANGE);
+        }
 
         timeSlotService.createTimeSlotsBulk(
                 restaurantId, 
