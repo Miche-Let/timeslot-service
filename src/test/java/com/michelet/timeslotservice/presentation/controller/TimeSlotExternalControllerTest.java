@@ -327,11 +327,11 @@ class TimeSlotExternalControllerTest {
     }
 
 	/**
-	 * [External] 월간 달력 조회 시 2024년 미만의 값을 요청하면 400 Bad Request를 반환하는 케이스
+	 * [External] 월간 달력 조회 시 2024년 미만의 값을 요청하면 에러를 반환
 	 * @throws Exception
 	 */
     @Test
-    @DisplayName("[External] 월간 달력 조회 시 2024년 미만의 값을 요청하면 현재 시스템 구조상 500 에러를 반환한다.")
+    @DisplayName("[External] 월간 달력 조회 시 2024년 미만의 값을 요청하면 에러를 반환한다.")
     void getCalendarByMonth_Fail_InvalidYear() throws Exception {
         UUID restaurantId = UUID.randomUUID();
 
@@ -349,11 +349,11 @@ class TimeSlotExternalControllerTest {
 
 
 	/**
-	 * [External] 월간 달력 조회 시 12월을 초과하는 값을 요청하면 400 Bad Request를 반환하는 케이스
+	 * [External] 월간 달력 조회 시 12월을 초과하는 값을 요청하면 에러를 반환
 	 * @throws Exception
 	 */
 	@Test
-    @DisplayName("[External] 월간 달력 조회 시 12월을 초과하는 값을 요청하면 400 Bad Request를 반환한다.")
+    @DisplayName("[External] 월간 달력 조회 시 12월을 초과하는 값을 요청하면 에러를 반환한다.")
     void getCalendarByMonth_Fail_InvalidMonth() throws Exception {
         UUID restaurantId = UUID.randomUUID();
 
