@@ -71,7 +71,7 @@ public class TimeSlotExternalController {
             @Valid @RequestBody TimeSlotBulkCreateRequest request) {    
 
         if (!request.isValidDateRange()) {
-            throw new BusinessException(TimeSlotErrorCode.INVALID_DATE_RANGE);
+            throw new BusinessException(TimeSlotErrorCode.INVALID_TIME_RANGE);
         }
         if (!request.isValidTimeRange()) {
             throw new BusinessException(TimeSlotErrorCode.INVALID_TIME_RANGE);

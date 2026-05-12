@@ -6,6 +6,7 @@ import jakarta.validation.constraints.NotNull;
 import java.time.LocalDate;
 import java.time.LocalTime;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.michelet.common.exception.BusinessException;
 import com.michelet.timeslotservice.domain.exception.TimeSlotErrorCode;
 
@@ -38,6 +39,7 @@ public record TimeSlotBulkCreateRequest(
     /**
      * 시작일이 종료일보다 늦지 않은지 검증합니다. (Null-safe 방어 추가)
      */
+    @JsonIgnore
     public boolean isValidDateRange() {
         if (startDate == null || endDate == null) return false;
         if (startDate.isAfter(endDate)) return false;
@@ -52,6 +54,7 @@ public record TimeSlotBulkCreateRequest(
     /**
      * 영업 오픈 시간이 종료 시간보다 빠른지 검증합니다. (Null-safe 방어 추가)
      */
+    @JsonIgnore
     public boolean isValidTimeRange() {
         if (openTime == null || closeTime == null) {
             return false;

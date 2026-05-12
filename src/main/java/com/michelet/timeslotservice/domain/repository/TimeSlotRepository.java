@@ -18,7 +18,7 @@ public interface TimeSlotRepository {
 
     List<TimeSlot> findByDateRange(UUID restaurantId, LocalDate startDate, LocalDate endDate);
 
-    void save(TimeSlot timeSlot);
+    TimeSlot save(TimeSlot timeSlot);
 
-    void saveAll(List<TimeSlot> timeSlots);
+    List<TimeSlot> saveAll(List<TimeSlot> timeSlots);
 }
