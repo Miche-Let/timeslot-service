@@ -44,7 +44,6 @@ class TimeSlotServiceTest {
     @InjectMocks
     private TimeSlotService timeSlotService;
 
-
     /**
      * 특정 일자의 타임슬롯 목록을 조회한다.
      */
@@ -53,11 +52,16 @@ class TimeSlotServiceTest {
     void getTimeSlotsByDate_Success() {
         UUID restaurantId = UUID.randomUUID();
         LocalDate date = LocalDate.of(2099, 12, 25);
+
         TimeSlot slot = aTimeSlot().restaurantId(restaurantId).targetDate(date).build();
+
+        // given
         given(timeSlotRepository.findByDate(restaurantId, date)).willReturn(List.of(slot));
 
+        // when
         List<TimeSlot> result = timeSlotService.getTimeSlotsByDate(restaurantId, date);
 
+        // then
         assertThat(result).hasSize(1);
         assertThat(result.get(0).getTargetDate()).isEqualTo(date);
         then(timeSlotRepository).should().findByDate(restaurantId, date);
@@ -71,11 +75,15 @@ class TimeSlotServiceTest {
     void deductCapacity_Success() {
         UUID timeSlotId = UUID.randomUUID();
         TimeSlot slot = aTimeSlot().id(timeSlotId).capacity(4).remainingCapacity(4).build();
+
+        // given
         given(timeSlotRepository.findById(timeSlotId)).willReturn(Optional.of(slot));
 
+        // when
         timeSlotService.deductCapacity(timeSlotId, 2);
 
-        assertThat(slot.getRemainingCapacity()).isEqualTo(2);  // 도메인 위임 확인
+        // then
+        assertThat(slot.getRemainingCapacity()).isEqualTo(2);
         then(timeSlotRepository).should().save(slot);
     }
 
@@ -86,16 +94,20 @@ class TimeSlotServiceTest {
     @DisplayName("[Service] 타임슬롯이 없으면 TIME_SLOT_NOT_FOUND 예외를 던지고 저장하지 않는다.")
     void deductCapacity_NotFound() {
         UUID timeSlotId = UUID.randomUUID();
+
+        // given
         given(timeSlotRepository.findById(timeSlotId)).willReturn(Optional.empty());
 
         BusinessException ex = catchThrowableOfType(
             BusinessException.class,                                  
             () -> timeSlotService.deductCapacity(timeSlotId, 2));
 
+        // then
         assertThat(ex).isNotNull();
         assertThat(ex.getErrorCode()).isEqualTo(TimeSlotErrorCode.TIME_SLOT_NOT_FOUND.getCode());
         assertThat(ex.getHttpStatus()).isEqualTo(TimeSlotErrorCode.TIME_SLOT_NOT_FOUND.getHttpStatus());
 
+        // then
         then(timeSlotRepository).should(never()).save(any());
     }
 
@@ -111,13 +123,15 @@ class TimeSlotServiceTest {
         LocalTime openTime  = LocalTime.of(12, 0);
         LocalTime closeTime = LocalTime.of(13, 0);
 
-        // 기존 슬롯 없음 → 중복 없음
+        // given
         given(timeSlotRepository.findByDateRange(eq(restaurantId), eq(startDate), eq(endDate)))
                 .willReturn(List.of());
 
+        // when
         timeSlotService.createTimeSlotsBulk(
                 restaurantId, startDate, endDate, openTime, closeTime, 60, 4);
 
+        // then
         then(timeSlotRepository).should().saveAll(anyList());
     }
 
@@ -137,6 +151,8 @@ class TimeSlotServiceTest {
                 .targetDate(date)
                 .time(openTime, closeTime)
                 .build();
+
+        // given
         given(timeSlotRepository.findByDateRange(eq(restaurantId), eq(date), eq(date)))
                 .willReturn(List.of(existing));
 
@@ -145,10 +161,12 @@ class TimeSlotServiceTest {
         () -> timeSlotService.createTimeSlotsBulk(
                 restaurantId, date, date, openTime, closeTime, 60, 4));
 
+        // then
         assertThat(ex).isNotNull();
         assertThat(ex.getErrorCode()).isEqualTo(TimeSlotErrorCode.DUPLICATE_TIME_SLOT.getCode());
         assertThat(ex.getHttpStatus()).isEqualTo(TimeSlotErrorCode.DUPLICATE_TIME_SLOT.getHttpStatus());
 
+        // then
         then(timeSlotRepository).should(never()).saveAll(anyList());
     }
 
@@ -168,14 +186,19 @@ class TimeSlotServiceTest {
                 .restaurantId(restaurantId)
                 .targetDate(LocalDate.of(year, month, 25))
                 .build();
+
+        // given
         given(timeSlotRepository.findByDateRange(restaurantId, firstDay, lastDay))
                 .willReturn(List.of(slot));
 
+        // when
         Map<LocalDate, TimeSlotStatus> calendar =
                 timeSlotService.getCalendarByMonth(restaurantId, year, month);
 
         assertThat(calendar).hasSize(31);
         assertThat(calendar).containsKey(LocalDate.of(year, month, 25));
+
+        // then
         then(timeSlotRepository).should().findByDateRange(restaurantId, firstDay, lastDay);
     }
 }
