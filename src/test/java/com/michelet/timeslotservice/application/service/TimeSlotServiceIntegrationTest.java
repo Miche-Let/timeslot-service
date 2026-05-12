@@ -82,6 +82,7 @@ class TimeSlotServiceIntegrationTest {
             });
         }
         latch.await();
+        executorService.shutdown();
 
         // then
         TimeSlot updatedSlot = timeSlotRepository.findById(savedSlot.getId()).orElseThrow();
