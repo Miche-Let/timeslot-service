@@ -7,12 +7,13 @@ export const options = {
 };
 
 const BASE_URL = 'http://localhost:19400/api/v1';
-
-const RESTAURANT_ID = 'b2eb25ef-e702-41a3-88fc-690b9983c901'; 
+const RESAURANT_ID = __ENV.RESTAURANT_ID;
+const YEAR = __ENV.YEAR;
+const MONTH = __ENV.MONTH;
 
 export default function () {
 
-    const url = `${BASE_URL}/restaurants/${RESTAURANT_ID}/time-slots/calendar?year=2026&month=5`;
+    const url = `${BASE_URL}/restaurants/${RESAURANT_ID}/time-slots/calendar?year=${YEAR}&month=${MONTH}`;
     
     const res = http.get(url);
 

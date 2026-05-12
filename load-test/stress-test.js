@@ -10,7 +10,11 @@ export const options = {
     ],
 };
 
-const TARGET_URL = 'http://localhost:19400/internal/v1/timeslots/a64c62c9-2e99-4790-8fe5-a84921c2a7d3/deduct';
+const BASE_URL = 'http://localhost:19400';
+const TIMESLOT_ID = __ENV.TIMESLOT_ID;
+
+const TARGET_URL = `${BASE_URL}/internal/v1/timeslots/${TIMESLOT_ID}/deduct`;
+
 const INTERNAL_TOKEN = __ENV.INTERNAL_TOKEN;
 
 export default function () {
