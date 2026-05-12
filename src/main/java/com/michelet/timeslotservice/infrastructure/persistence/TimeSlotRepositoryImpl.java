@@ -57,22 +57,28 @@ public class TimeSlotRepositoryImpl implements TimeSlotRepository {
      * 타임슬롯을 저장합니다. 이미 존재하는 타임슬롯과 중복되는 경우 예외를 던집니다.
      */
     @Override
-    public void save(TimeSlot timeSlot) {
-        jpaRepository.save(mapper.toEntity(timeSlot));
+    public TimeSlot save(TimeSlot timeSlot) {
+        TimeSlotEntity entity = mapper.toEntity(timeSlot);
+        TimeSlotEntity savedEntity = jpaRepository.save(entity);
+        return mapper.toDomain(savedEntity);
     }
 
     /**
      * 여러 타임슬롯을 일괄 저장합니다. 후보군 중 하나라도 기존 타임슬롯과 중복되는 경우 예외를 던집니다.
      */
     @Override
-    public void saveAll(List<TimeSlot> timeSlots) {
+    public List<TimeSlot> saveAll(List<TimeSlot> timeSlots) {
         List<TimeSlotEntity> entities = timeSlots.stream()
                 .map(mapper::toEntity)
                 .collect(Collectors.toList());
+                List<TimeSlotEntity> savedEntities;
         try {
-            jpaRepository.saveAll(entities);
+            savedEntities = jpaRepository.saveAll(entities);
         } catch (DataIntegrityViolationException e) {
             throw new BusinessException(TimeSlotErrorCode.DUPLICATE_TIME_SLOT);
         }
+        return savedEntities.stream()
+                .map(mapper::toDomain)
+                .collect(Collectors.toList());
     }
 }
