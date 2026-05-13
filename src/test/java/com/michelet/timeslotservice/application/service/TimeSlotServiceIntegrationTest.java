@@ -164,7 +164,9 @@ class TimeSlotServiceIntegrationTest extends IntegrationTestSupport {
 
         int threadCount = 4;
         ExecutorService executorService = Executors.newFixedThreadPool(4);
-        CountDownLatch latch = new CountDownLatch(threadCount);
+        CountDownLatch ready = new CountDownLatch(threadCount);
+        CountDownLatch start = new CountDownLatch(1);
+        CountDownLatch done = new CountDownLatch(threadCount);
 
         AtomicInteger successCount = new AtomicInteger(0);
         AtomicInteger failCount = new AtomicInteger(0);
@@ -173,16 +175,23 @@ class TimeSlotServiceIntegrationTest extends IntegrationTestSupport {
         for (int i = 0; i < threadCount; i++) {
             executorService.submit(() -> {
                 try {
+                    ready.countDown();
+                    start.await();
                     timeSlotService.restoreCapacity(savedSlot.getId(), 1);
                     successCount.incrementAndGet();
                 } catch (ObjectOptimisticLockingFailureException | BusinessException e) {
                     failCount.incrementAndGet();
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    throw new RuntimeException("Test interrupted", e);
                 } finally {
-                    latch.countDown();
+                    done.countDown();
                 }
             });
         }
-        latch.await();
+        ready.await();
+        start.countDown();
+        done.await();
         executorService.shutdown();
 
         // then
