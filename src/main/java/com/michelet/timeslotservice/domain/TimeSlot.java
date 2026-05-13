@@ -117,7 +117,7 @@ public class TimeSlot {
             throw new BusinessException(TimeSlotErrorCode.INVALID_RESTORE_REQUEST);
         }
         
-        if (this.remainingCapacity + restoreCapacity > this.capacity) {
+        if (restoreCapacity > this.capacity - this.remainingCapacity) {
             throw new BusinessException(TimeSlotErrorCode.INVALID_EXCEED_RESTORE_REQUEST);
         }
         
