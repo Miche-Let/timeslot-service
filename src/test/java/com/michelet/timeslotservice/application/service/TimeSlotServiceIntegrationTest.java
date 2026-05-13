@@ -133,7 +133,7 @@ class TimeSlotServiceIntegrationTest extends IntegrationTestSupport {
     @Test
     @DisplayName("[통합] 최대 수용 인원을 초과하여 복구하려고 하면 BusinessException이 발생한다.")
     void restoreCapacity_Fail_ExceedMaxCapacity() {
-        // given: 정원 4명, 남은 자리가 이미 4명(예약자 0명)인 타임슬롯
+        // given
         TimeSlot slot = aTimeSlot()
             .id(null)
             .restaurantId(UUID.randomUUID())
@@ -142,10 +142,9 @@ class TimeSlotServiceIntegrationTest extends IntegrationTestSupport {
             .build();
         TimeSlot savedSlot = timeSlotRepository.save(slot);
 
-        // when & then: 1명을 추가로 복원하려 하면 예외가 발생해야 한다
+        // when & then
         assertThatThrownBy(() -> timeSlotService.restoreCapacity(savedSlot.getId(), 1))
                 .isInstanceOf(BusinessException.class); 
-                // 필요시 .hasMessageContaining() 등으로 구체적 검증 추가
     }
 
     /**
@@ -177,7 +176,7 @@ class TimeSlotServiceIntegrationTest extends IntegrationTestSupport {
                     timeSlotService.restoreCapacity(savedSlot.getId(), 1);
                     successCount.incrementAndGet();
                 } catch (ObjectOptimisticLockingFailureException | BusinessException e) {
-                    failCount.incrementAndGet(); // 락 충돌로 인해 실패한 건수
+                    failCount.incrementAndGet();
                 } finally {
                     latch.countDown();
                 }
@@ -186,7 +185,7 @@ class TimeSlotServiceIntegrationTest extends IntegrationTestSupport {
         latch.await();
         executorService.shutdown();
 
-        // then: 동시성 덮어쓰기(Lost Update)가 방지되어야 하므로 4건 모두 성공할 수는 없습니다.
+        // then
         TimeSlot updatedSlot = timeSlotRepository.findById(savedSlot.getId()).orElseThrow();
         assertThat(successCount.get()).isEqualTo(1);
         assertThat(failCount.get()).isEqualTo(3);

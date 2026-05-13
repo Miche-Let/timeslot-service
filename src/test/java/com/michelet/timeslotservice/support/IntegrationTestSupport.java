@@ -31,6 +31,11 @@ import io.jsonwebtoken.security.Keys;
 )
 public abstract class IntegrationTestSupport {
 
+
+
+    /**
+     * Auditor 설정을 담당
+     */
     @MockitoBean
     protected AuditorAware<UUID> auditorAware; 
 
@@ -40,6 +45,9 @@ public abstract class IntegrationTestSupport {
     }
 
 
+    /**
+     * internal.auth.secret 을 이용하여 X-Internal-Token 생성
+     */
     @Value("${internal.auth.secret}")
     private String secretKey;
 
@@ -55,9 +63,12 @@ public abstract class IntegrationTestSupport {
                 .compact();
     }
 
+    /**
+     * PostgreSQL 테스트 컨테이너 생성
+     */
     @SuppressWarnings("resource")
     @ServiceConnection
-    static final PostgreSQLContainer<?> postgresContainer = new PostgreSQLContainer<>("postgres:18")
+    static final PostgreSQLContainer<?> postgresContainer = new PostgreSQLContainer<>("postgres:18.3")
             .withDatabaseName("timeslot_test")
             .withUsername("test")
             .withPassword("test");
