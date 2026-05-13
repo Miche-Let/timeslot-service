@@ -6,7 +6,7 @@ spring:
     name: timeslot-service
 
   profiles:
-    active: local
+    default: local
 
   datasource:
     url: jdbc:postgresql://${DB_HOST:localhost}:${POSTGRES_PORT:5432}/${POSTGRES_DB:michelet_db}?currentSchema=timeslot_service
