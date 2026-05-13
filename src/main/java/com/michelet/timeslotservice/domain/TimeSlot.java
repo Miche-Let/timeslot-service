@@ -123,7 +123,7 @@ public class TimeSlot {
         
         this.remainingCapacity += restoreCapacity;
 
-        if (this.remainingCapacity > 0) {
+        if (this.remainingCapacity > 0 && this.status == TimeSlotStatus.CLOSED) {
             this.status = TimeSlotStatus.OPENED;
         }
     }
