@@ -8,6 +8,8 @@ import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
+import com.michelet.timeslotservice.support.IntegrationTestSupport;
+
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.MediaType;
@@ -18,7 +20,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * [E2E Test] 실제 톰캣 서버를 띄우고 클라이언트 관점에서 API 흐름을 검증합니다.
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, properties = {"eureka.client.enabled=false"})
-class TimeSlotApiEndToEndTest {
+class TimeSlotApiEndToEndTest extends IntegrationTestSupport {
 
     @Autowired
     private TestRestTemplate restTemplate;

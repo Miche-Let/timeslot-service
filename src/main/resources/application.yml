@@ -5,6 +5,9 @@ spring:
   application:
     name: timeslot-service
 
+  profiles:
+    default: local
+
   datasource:
     url: jdbc:postgresql://${DB_HOST:localhost}:${POSTGRES_PORT:5432}/${POSTGRES_DB:michelet_db}?currentSchema=timeslot_service
     username: ${POSTGRES_USER:admin}
@@ -13,13 +16,10 @@ spring:
 
   jpa:
     hibernate:
-      ddl-auto: ${SPRING_JPA_HIBERNATE_DDL_AUTO:update}
-    show-sql: true
+      ddl-auto: validate
     properties:
       hibernate:
         default_schema: timeslot_service
-        format_sql: true
-        highlight_sql: true
 
 internal:
   auth:
