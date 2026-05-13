@@ -10,7 +10,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
  * 싱글톤 패턴을 이용한 PostgreSQL Testcontainer 사용
  */
 @ActiveProfiles("local")
-@SpringBootTest()
+@SpringBootTest("eureka.client.enabled=false")
 @Testcontainers
 public abstract class IntegrationTestSupport {
 
