@@ -45,7 +45,13 @@ public enum TimeSlotErrorCode implements ErrorCode {
     FORBIDDEN("TS_011", 403, "권한이 없습니다."),
     
     /** 유효하지 않은 간격 에러 */
-    INVALID_INTERVAL("TS_012", 400, "타임슬롯 생성 간격이 유효하지 않습니다. 양수여야 합니다.");
+    INVALID_INTERVAL("TS_012", 400, "타임슬롯 생성 간격이 유효하지 않습니다. 양수여야 합니다."),
+
+    /** 유효하지 않은 복원 인원 요청 */
+    INVALID_RESTORE_REQUEST("TS_013", 400, "유효하지 않은 복원 인원 요청입니다. 요청된 인원 수는 1 이상이어야 합니다."),
+
+    /** 타임슬롯 복원시 최대 수용인원 초과 */
+    INVALID_EXCEED_RESTORE_REQUEST("TS_014", 400, "타임슬롯 최대 수용인원을 초과합니다.");
 
     private final String code;
     private final int httpStatus;
