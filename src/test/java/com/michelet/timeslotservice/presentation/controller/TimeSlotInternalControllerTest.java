@@ -11,6 +11,7 @@ import com.michelet.timeslotservice.application.service.TimeSlotService;
 import com.michelet.timeslotservice.domain.exception.TimeSlotErrorCode;
 import com.michelet.timeslotservice.infrastructure.config.WebConfig;
 import com.michelet.timeslotservice.presentation.dto.request.TimeSlotDeductCapacityRequest;
+import com.michelet.timeslotservice.presentation.dto.request.TimeSlotRestoreCapacityRequest;
 import com.michelet.timeslotservice.support.builder.TimeSlotTestBuilder;
 
 import org.junit.jupiter.api.AfterEach;
@@ -30,7 +31,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.then;
 import static org.mockito.BDDMockito.willThrow;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.patch;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -83,7 +84,7 @@ class TimeSlotInternalControllerTest {
         TimeSlotDeductCapacityRequest request = new TimeSlotDeductCapacityRequest(3);
 
         // when & then
-        mockMvc.perform(post("/internal/v1/timeslots/{timeSlotId}/deduct", TimeSlotTestBuilder.DEFAULT_ID)
+        mockMvc.perform(patch("/internal/v1/time-slots/{timeSlotId}/deduct", TimeSlotTestBuilder.DEFAULT_ID)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk());
@@ -102,7 +103,7 @@ class TimeSlotInternalControllerTest {
         TimeSlotDeductCapacityRequest invalidRequest = new TimeSlotDeductCapacityRequest(0);
 
         // when & then
-        mockMvc.perform(post("/internal/v1/timeslots/{timeSlotId}/deduct", TimeSlotTestBuilder.DEFAULT_ID)
+        mockMvc.perform(patch("/internal/v1/time-slots/{timeSlotId}/deduct", TimeSlotTestBuilder.DEFAULT_ID)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(invalidRequest)))
                 .andExpect(status().isBadRequest());
@@ -123,7 +124,7 @@ class TimeSlotInternalControllerTest {
                 .given(timeSlotService).deductCapacity(eq(TimeSlotTestBuilder.DEFAULT_ID), eq(100));
 
         // when & then
-        mockMvc.perform(post("/internal/v1/timeslots/{timeSlotId}/deduct", TimeSlotTestBuilder.DEFAULT_ID)
+        mockMvc.perform(patch("/internal/v1/time-slots/{timeSlotId}/deduct", TimeSlotTestBuilder.DEFAULT_ID)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest())
@@ -144,10 +145,51 @@ class TimeSlotInternalControllerTest {
                 .given(timeSlotService).deductCapacity(eq(fakeId), eq(2));
 
         // when & then
-        mockMvc.perform(post("/internal/v1/timeslots/{timeSlotId}/deduct", fakeId)
+        mockMvc.perform(patch("/internal/v1/time-slots/{timeSlotId}/deduct", fakeId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.code").value(TimeSlotErrorCode.TIME_SLOT_NOT_FOUND.getCode()));
+    }
+
+
+    /**
+     * 성공 케이스: 타임슬롯 정원 복원 요청이 정상적으로 처리되고, 서비스의 restoreCapacity 메서드가 올바른 인자로 호출되는지 검증합니다.
+     * @throws Exception
+     */
+    @Test
+    @DisplayName("[Internal] 타임슬롯 인원 복원 요청이 성공적으로 처리된다.")
+    void restoreCapacity_Success() throws Exception {
+        // given
+        TimeSlotRestoreCapacityRequest request = new TimeSlotRestoreCapacityRequest(3);
+
+        // when & then
+        mockMvc.perform(patch("/internal/v1/time-slots/{timeSlotId}/restore", TimeSlotTestBuilder.DEFAULT_ID)
+                        .param("remainingCapacity", "0")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isOk());
+                
+        then(timeSlotService).should().restoreCapacity(eq(TimeSlotTestBuilder.DEFAULT_ID), eq(3));
+    }
+
+    /**
+     * 비즈니스 로직 예외 1 (남은 정원 초과)
+     */
+    @Test
+    @DisplayName("[Internal] 복원을 요청시 남은 정원을 초과하면 INVALID_EXCEED_RESTORE_REQUEST 예외 응답을 반환한다.")
+    void restoreCapacity_Fail_ExceedCapacity() throws Exception {
+        // given
+        TimeSlotRestoreCapacityRequest request = new TimeSlotRestoreCapacityRequest(100);
+        
+        willThrow(new BusinessException(TimeSlotErrorCode.INVALID_EXCEED_RESTORE_REQUEST))
+                .given(timeSlotService).restoreCapacity(eq(TimeSlotTestBuilder.DEFAULT_ID), eq(100));
+
+        // when & then
+        mockMvc.perform(patch("/internal/v1/time-slots/{timeSlotId}/restore", TimeSlotTestBuilder.DEFAULT_ID)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value(TimeSlotErrorCode.INVALID_EXCEED_RESTORE_REQUEST.getCode()));
     }
 }
