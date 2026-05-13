@@ -109,4 +109,23 @@ public class TimeSlot {
         }
     }
 
+    /**
+     * 타임슬롯 인원 복구 (보상 트랜잭션)
+     */
+    public void restore(int restoreCapacity) {
+        if (restoreCapacity <= 0) {
+            throw new BusinessException(TimeSlotErrorCode.INVALID_RESTORE_REQUEST);
+        }
+        
+        if (restoreCapacity > this.capacity - this.remainingCapacity) {
+            throw new BusinessException(TimeSlotErrorCode.INVALID_EXCEED_RESTORE_REQUEST);
+        }
+        
+        this.remainingCapacity += restoreCapacity;
+
+        if (this.remainingCapacity > 0 && this.status == TimeSlotStatus.CLOSED) {
+            this.status = TimeSlotStatus.OPENED;
+        }
+    }
+
 }

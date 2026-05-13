@@ -125,4 +125,22 @@ public class TimeSlotService {
             }
         }
     }
+
+    /**
+     * 결제 실패 혹은 오류시 타임슬롯 인원을 복원합니다.
+     * @param timeSlotId
+     * @param recoverCapacity
+     */
+
+    @Transactional
+    public void restoreCapacity(UUID timeSlotId, int recoverCapacity) {
+        TimeSlot timeSlot = timeSlotRepository.findById(timeSlotId)
+                .orElseThrow(() -> new BusinessException(TimeSlotErrorCode.TIME_SLOT_NOT_FOUND));
+
+        timeSlot.restore(recoverCapacity);
+
+        timeSlotRepository.save(timeSlot);
+
+    }
+
 }
