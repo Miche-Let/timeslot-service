@@ -133,7 +133,7 @@ public class TimeSlotService {
      */
 
     @Transactional
-    public void restoreTimeSlot(UUID timeSlotId, int recoverCapacity) {
+    public void restoreCapacity(UUID timeSlotId, int recoverCapacity) {
         TimeSlot timeSlot = timeSlotRepository.findById(timeSlotId)
                 .orElseThrow(() -> new BusinessException(TimeSlotErrorCode.TIME_SLOT_NOT_FOUND));
 

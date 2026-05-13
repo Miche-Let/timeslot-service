@@ -12,7 +12,7 @@ import com.michelet.common.response.ApiResponse;
 import com.michelet.timeslotservice.application.service.TimeSlotService;
 import com.michelet.timeslotservice.presentation.code.TimeSlotSuccessCode;
 import com.michelet.timeslotservice.presentation.dto.request.TimeSlotDeductCapacityRequest;
-import com.michelet.timeslotservice.presentation.dto.request.TimeSlotRestoreRequest;
+import com.michelet.timeslotservice.presentation.dto.request.TimeSlotRestoreCapacityRequest;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -49,11 +49,11 @@ public class TimeSlotInternalController {
      */
 
     @PatchMapping("/{timeSlotId}/restore")
-    public ApiResponse<Void> restoreTimeSlot(
+    public ApiResponse<Void> restoreCapacity(
             @PathVariable UUID timeSlotId,
-            @RequestBody @Valid TimeSlotRestoreRequest request) {
+            @RequestBody @Valid TimeSlotRestoreCapacityRequest request) {
         
-        timeSlotService.restoreTimeSlot(timeSlotId, request.restoreCapacity());
+        timeSlotService.restoreCapacity(timeSlotId, request.restoreCapacity());
         
         return ApiResponse.ok(TimeSlotSuccessCode.RESTORE_SUCCESS, null);
     }
