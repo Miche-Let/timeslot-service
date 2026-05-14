@@ -3,27 +3,33 @@ package com.michelet.timeslotservice.presentation.controller;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
+import com.michelet.timeslotservice.domain.TimeSlot;
+import com.michelet.timeslotservice.domain.repository.TimeSlotRepository;
 import com.michelet.timeslotservice.support.IntegrationTestSupport;
 
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.MediaType;
 
+import static com.michelet.timeslotservice.support.builder.TimeSlotTestBuilder.aTimeSlot;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * [E2E Test] 실제 톰캣 서버를 띄우고 클라이언트 관점에서 API 흐름을 검증합니다.
  */
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, properties = {"eureka.client.enabled=false"})
+
 class TimeSlotApiEndToEndTest extends IntegrationTestSupport {
 
     @Autowired
     private TestRestTemplate restTemplate;
+
+    @Autowired
+    private TimeSlotRepository timeSlotRepository;
 
     /**
      * [E2E] 잘못된 날짜로 달력 조회를 요청하면 HTTP 400 에러와 함께 공통 에러 포맷이 반환된다.
@@ -87,5 +93,47 @@ class TimeSlotApiEndToEndTest extends IntegrationTestSupport {
         // then
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
         assertThat(response.getBody()).contains("\"code\":\"VALIDATION_001\""); 
+    }
+
+
+    /**
+     * [E2E] 내부 서비스(결제 등)에서 타임슬롯 인원 복원(PATCH)을 요청하면 정상 처리된다.
+     */
+    @Test
+    @DisplayName("[E2E] 타임슬롯 인원 복원 요청 시 HTTP 200 OK가 반환된다.")
+    void restoreCapacity_E2E_Success() {
+        // given
+        TimeSlot timeSlot = aTimeSlot()
+                .id(null)
+                .restaurantId(java.util.UUID.randomUUID())
+                .targetDate(java.time.LocalDate.of(2099, 5, 20))
+                .time(java.time.LocalTime.of(14, 0), java.time.LocalTime.of(15, 0))
+                .capacity(4)
+                .remainingCapacity(2)
+                .build();
+
+        TimeSlot savedSlot = timeSlotRepository.save(timeSlot);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+
+        headers.set("X-Internal-Token", createTestInternalToken());
+        
+        String requestBody = "{\"restoreCapacity\": 1}";
+        HttpEntity<String> request = new HttpEntity<>(requestBody, headers);
+
+        String url = "/internal/v1/time-slots/" + savedSlot.getId() + "/restore";
+
+        // when
+        ResponseEntity<String> response = restTemplate.exchange(
+                url,
+                HttpMethod.PATCH,
+                request,
+                String.class
+        );
+        System.out.println("응답 상태 코드: " + response.getStatusCode());
+        System.out.println("응답 바디: " + response.getBody());
+        // then
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
     }
 }

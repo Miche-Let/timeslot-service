@@ -5,18 +5,14 @@ import com.michelet.timeslotservice.domain.TimeSlot;
 import com.michelet.timeslotservice.domain.repository.TimeSlotRepository;
 import com.michelet.timeslotservice.support.IntegrationTestSupport;
 
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.AuditorAware;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
@@ -24,8 +20,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static com.michelet.timeslotservice.support.builder.TimeSlotTestBuilder.aTimeSlot;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.BDDMockito.given;
+import static org.assertj.core.api.Assertions.*;
 
 class TimeSlotServiceIntegrationTest extends IntegrationTestSupport {
 
@@ -34,14 +29,6 @@ class TimeSlotServiceIntegrationTest extends IntegrationTestSupport {
 
     @Autowired
     private TimeSlotRepository timeSlotRepository;
-
-    @MockitoBean
-    private AuditorAware<UUID> auditorAware;
-
-    @BeforeEach
-    void setUp() {
-        given(auditorAware.getCurrentAuditor()).willReturn(Optional.of(UUID.randomUUID()));
-    }
 
     /**
      * [통합] 1자리 남은 타임슬롯에 100명이 동시에 예약을 요청하면 1명만 성공하고 99명은 실패해야 한다.
@@ -114,6 +101,104 @@ class TimeSlotServiceIntegrationTest extends IntegrationTestSupport {
         // then
         List<TimeSlot> savedSlots = timeSlotRepository.findByDateRange(restaurantId, startDate, endDate);
         assertThat(savedSlots).hasSize(4);
+    }
+
+
+    /**
+     * [통합] 1. 정상 흐름: 예약 취소 시 타임슬롯의 남은 자리가 정확히 복구된다.
+     */
+    @Test
+    @DisplayName("[통합] 예약 취소 시 타임슬롯의 남은 자리가 요청한 만큼(1) 정상 복구된다.")
+    void restoreCapacity_Success() {
+        // given
+        TimeSlot slot = aTimeSlot()
+            .id(null)
+            .restaurantId(UUID.randomUUID())
+            .capacity(4)
+            .remainingCapacity(2)
+            .build();
+        TimeSlot savedSlot = timeSlotRepository.save(slot);
+
+        // when
+        timeSlotService.restoreCapacity(savedSlot.getId(), 1);
+
+        // then
+        TimeSlot updatedSlot = timeSlotRepository.findById(savedSlot.getId()).orElseThrow();
+        assertThat(updatedSlot.getRemainingCapacity()).isEqualTo(3);
+    }
+
+    /**
+     * [통합] 2. 예외 흐름: 정원 초과 방어
+     */
+    @Test
+    @DisplayName("[통합] 최대 수용 인원을 초과하여 복구하려고 하면 BusinessException이 발생한다.")
+    void restoreCapacity_Fail_ExceedMaxCapacity() {
+        // given
+        TimeSlot slot = aTimeSlot()
+            .id(null)
+            .restaurantId(UUID.randomUUID())
+            .capacity(4)
+            .remainingCapacity(4)
+            .build();
+        TimeSlot savedSlot = timeSlotRepository.save(slot);
+
+        // when & then
+        assertThatThrownBy(() -> timeSlotService.restoreCapacity(savedSlot.getId(), 1))
+                .isInstanceOf(BusinessException.class); 
+    }
+
+    /**
+     * [통합] 3. 동시성 제어: 다중 취소 요청 시 락(Lock) 검증
+     */
+    @Test
+    @DisplayName("[통합] 동일한 타임슬롯에 4건의 복구 요청이 동시 다발적으로 발생하면 락이 작동해야 한다.")
+    void restoreCapacity_ConcurrencyTest() throws InterruptedException {
+        // given
+        TimeSlot slot = aTimeSlot()
+            .id(null)
+            .restaurantId(UUID.randomUUID())
+            .capacity(4)
+            .remainingCapacity(0)
+            .build();
+        TimeSlot savedSlot = timeSlotRepository.save(slot);
+
+        int threadCount = 4;
+        ExecutorService executorService = Executors.newFixedThreadPool(4);
+        CountDownLatch ready = new CountDownLatch(threadCount);
+        CountDownLatch start = new CountDownLatch(1);
+        CountDownLatch done = new CountDownLatch(threadCount);
+
+        AtomicInteger successCount = new AtomicInteger(0);
+        AtomicInteger failCount = new AtomicInteger(0);
+
+        // when
+        for (int i = 0; i < threadCount; i++) {
+            executorService.submit(() -> {
+                try {
+                    ready.countDown();
+                    start.await();
+                    timeSlotService.restoreCapacity(savedSlot.getId(), 1);
+                    successCount.incrementAndGet();
+                } catch (ObjectOptimisticLockingFailureException | BusinessException e) {
+                    failCount.incrementAndGet();
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    throw new RuntimeException("Test interrupted", e);
+                } finally {
+                    done.countDown();
+                }
+            });
+        }
+        ready.await();
+        start.countDown();
+        done.await();
+        executorService.shutdown();
+
+        // then
+        TimeSlot updatedSlot = timeSlotRepository.findById(savedSlot.getId()).orElseThrow();
+        assertThat(successCount.get()).isEqualTo(1);
+        assertThat(failCount.get()).isEqualTo(3);
+        assertThat(updatedSlot.getRemainingCapacity()).isEqualTo(1);
     }
 
     
