@@ -5,11 +5,15 @@ import com.michelet.timeslotservice.domain.TimeSlot;
 import com.michelet.timeslotservice.domain.TimeSlotCalendar;
 import com.michelet.timeslotservice.domain.TimeSlotGenerator;
 import com.michelet.timeslotservice.domain.TimeSlotStatus;
+import com.michelet.timeslotservice.domain.exception.ConcurrentModificationException;
 import com.michelet.timeslotservice.domain.exception.TimeSlotErrorCode;
 import com.michelet.timeslotservice.domain.repository.TimeSlotRepository;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+
+import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -31,7 +35,7 @@ import java.util.stream.Collectors;
 public class TimeSlotService {
 
     private final TimeSlotRepository timeSlotRepository;
-
+    private final TimeSlotCapacityService timeSlotCapacityService;
 
     /**
      * 특정 식당의 특정 일자(TargetDate) 타임슬롯 목록을 조회합니다.
@@ -46,19 +50,17 @@ public class TimeSlotService {
 
 
     /**
-     * 특정 타임슬롯에서 예약이 확정되어, 남은 좌석 수를 줄여야 하는 경우에 호출됩니다.
-     * @param timeSlotId
-     * @param requiredCapacity
+     * 외부 진입점: 재시도 처리. 트랜잭션은 내부 서비스가 시작.
      */
-    @Transactional
+    @Retryable(
+        retryFor = ConcurrentModificationException.class,
+        maxAttempts = 5,
+        backoff = @Backoff(delay = 50, multiplier = 2.0, random = true, maxDelay = 200)
+    )
     public void deductCapacity(UUID timeSlotId, int requiredCapacity) {
-        TimeSlot domain = timeSlotRepository.findById(timeSlotId)
-                .orElseThrow(() -> new BusinessException(TimeSlotErrorCode.TIME_SLOT_NOT_FOUND));
-
-        domain.deduct(requiredCapacity);
-
-        timeSlotRepository.save(domain);
+        timeSlotCapacityService.deductCapacityInTransaction(timeSlotId, requiredCapacity);
     }
+
 
     /**
      * 특정 식당의 타임슬롯을 일괄 생성합니다.
@@ -126,21 +128,18 @@ public class TimeSlotService {
         }
     }
 
+
     /**
-     * 결제 실패 혹은 오류시 타임슬롯 인원을 복원합니다.
-     * @param timeSlotId
-     * @param recoverCapacity
+     * 외부 진입점: 재시도 처리. 트랜잭션은 내부 서비스가 시작.
      */
-
-    @Transactional
-    public void restoreCapacity(UUID timeSlotId, int recoverCapacity) {
-        TimeSlot timeSlot = timeSlotRepository.findById(timeSlotId)
-                .orElseThrow(() -> new BusinessException(TimeSlotErrorCode.TIME_SLOT_NOT_FOUND));
-
-        timeSlot.restore(recoverCapacity);
-
-        timeSlotRepository.save(timeSlot);
-
+    @Retryable(
+        retryFor = ConcurrentModificationException.class,
+        maxAttempts = 5,
+        backoff = @Backoff(delay = 50, multiplier = 2.0, random = true, maxDelay = 200)
+    )
+    public void restoreCapacity(UUID timeSlotId, int requiredCapacity) {
+        timeSlotCapacityService.restoreCapacityInTransaction(timeSlotId, requiredCapacity);
     }
+
 
 }
