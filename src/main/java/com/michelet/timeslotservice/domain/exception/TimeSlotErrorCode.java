@@ -51,7 +51,10 @@ public enum TimeSlotErrorCode implements ErrorCode {
     INVALID_RESTORE_REQUEST("TS_013", 400, "유효하지 않은 복원 인원 요청입니다. 요청된 인원 수는 1 이상이어야 합니다."),
 
     /** 타임슬롯 복원시 최대 수용인원 초과 */
-    INVALID_EXCEED_RESTORE_REQUEST("TS_014", 400, "타임슬롯 최대 수용인원을 초과합니다.");
+    INVALID_EXCEED_RESTORE_REQUEST("TS_014", 400, "타임슬롯 최대 수용인원을 초과합니다."),
+
+    /** 낙관적 락 동시 충돌시 */
+    CONCURRENT_MODIFICATION("TS_015", 409,  "동시 요청 충돌이 발생했습니다. 다시 시도해주세요.");
 
     private final String code;
     private final int httpStatus;

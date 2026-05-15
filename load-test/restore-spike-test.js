@@ -4,8 +4,15 @@ import { restore } from './common/api-client.js';
 import { checkResponse } from './common/checks.js';
 
 export const options = {
-    vus: 1,
-    duration: '10s',
+    stages: [
+        { duration: '10s', target: 100 },
+        { duration: '1m', target: 100 },
+        { duration: '10s', target: 1000 },
+        { duration: '2m', target: 1000 },
+        { duration: '10s', target: 100 },
+        { duration: '2m', target: 100 },
+        { duration: '10s', target: 0 },
+    ],
 };
 
 export function setup() {

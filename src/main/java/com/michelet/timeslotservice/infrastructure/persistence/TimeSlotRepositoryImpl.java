@@ -2,6 +2,7 @@ package com.michelet.timeslotservice.infrastructure.persistence;
 
 import com.michelet.common.exception.BusinessException;
 import com.michelet.timeslotservice.domain.TimeSlot;
+import com.michelet.timeslotservice.domain.exception.ConcurrentModificationException;
 import com.michelet.timeslotservice.domain.exception.TimeSlotErrorCode;
 import com.michelet.timeslotservice.domain.repository.TimeSlotRepository;
 import com.michelet.timeslotservice.infrastructure.persistence.entity.TimeSlotEntity;
@@ -9,6 +10,7 @@ import com.michelet.timeslotservice.infrastructure.persistence.mapper.TimeSlotMa
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
@@ -61,6 +63,20 @@ public class TimeSlotRepositoryImpl implements TimeSlotRepository {
         TimeSlotEntity entity = mapper.toEntity(timeSlot);
         TimeSlotEntity savedEntity = jpaRepository.save(entity);
         return mapper.toDomain(savedEntity);
+    }
+
+    /**
+     * 타임슬롯을 저장합니다. 즉시 DB로 UPDATE 쿼리 실행
+     */
+    @Override
+    public TimeSlot saveAndFlush(TimeSlot timeSlot) {
+        try {
+            TimeSlotEntity entity = mapper.toEntity(timeSlot);
+            TimeSlotEntity savedEntity = jpaRepository.saveAndFlush(entity);
+            return mapper.toDomain(savedEntity);
+        } catch (ObjectOptimisticLockingFailureException e) {
+            throw new ConcurrentModificationException();
+        }
     }
 
     /**

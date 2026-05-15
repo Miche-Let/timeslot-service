@@ -196,9 +196,9 @@ class TimeSlotServiceIntegrationTest extends IntegrationTestSupport {
 
         // then
         TimeSlot updatedSlot = timeSlotRepository.findById(savedSlot.getId()).orElseThrow();
-        assertThat(successCount.get()).isEqualTo(1);
-        assertThat(failCount.get()).isEqualTo(3);
-        assertThat(updatedSlot.getRemainingCapacity()).isEqualTo(1);
+        assertThat(successCount.get()).isEqualTo(4);
+        assertThat(failCount.get()).isEqualTo(0);
+        assertThat(updatedSlot.getRemainingCapacity()).isEqualTo(4);
     }
 
     

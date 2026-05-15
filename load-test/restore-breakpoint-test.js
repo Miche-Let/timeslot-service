@@ -4,8 +4,16 @@ import { restore } from './common/api-client.js';
 import { checkResponse } from './common/checks.js';
 
 export const options = {
-    vus: 1,
-    duration: '10s',
+    executor: 'ramping-arrival-rate', 
+    startRate: 50,
+    timeUnit: '1s',
+    preAllocatedVUs: 500,
+    maxVUs: 2000,
+    stages: [
+        { target: 1000, duration: '5m' },
+        { target: 1000, duration: '10m' },
+        { target: 0, duration: '2m' },
+    ],
 };
 
 export function setup() {
