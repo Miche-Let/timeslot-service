@@ -4,9 +4,8 @@ spring:
 
 eureka:
   instance:
-    hostname: localhost
+    hostname: timeslot-service
     prefer-ip-address: false
-    
   client:
     service-url:
-      defaultZone: http://host.docker.internal:8761/eureka/
+      defaultZone: http://eureka-server:8761/eureka/
