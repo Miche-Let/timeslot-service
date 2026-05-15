@@ -88,21 +88,21 @@ public class TimeSlot {
 
     /**
      * 타임슬롯의 예약 가능 인원을 차감합니다.
-     * @param requiredCapacity 차감할 인원 수
+     * @param deductCapacity 차감할 인원 수
      * @throws BusinessException 잔여 인원이 부족하거나 마감된 경우 발생
      */
-    public void deduct(int requiredCapacity) {
-        if (requiredCapacity <= 0) {
+    public void deduct(int deductCapacity) {
+        if (deductCapacity <= 0) {
         throw new BusinessException(TimeSlotErrorCode.INVALID_CAPACITY_REQUEST);
         }
         if (this.status == TimeSlotStatus.CLOSED) {
             throw new BusinessException(TimeSlotErrorCode.TIME_SLOT_CLOSED);
         }
-        if (this.remainingCapacity < requiredCapacity) {
+        if (this.remainingCapacity < deductCapacity) {
             throw new BusinessException(TimeSlotErrorCode.NOT_ENOUGH_CAPACITY);
         }
 
-        this.remainingCapacity -= requiredCapacity;
+        this.remainingCapacity -= deductCapacity;
 
         if (this.remainingCapacity == 0) {
             this.status = TimeSlotStatus.CLOSED;
