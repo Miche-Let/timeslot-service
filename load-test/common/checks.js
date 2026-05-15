@@ -9,7 +9,7 @@ export function checkResponse(res) {
             r.status === 200 || r.status === 409 || r.status === 500,
     });
 
-    if (res.status === 500 || res.status === 409) lockConflicts.add(1);
+    if (res.status === 409) lockConflicts.add(1);;
 
     if (res.status === 409) businessRejects.add(1);
     if (res.status === 500) systemErrors.add(1);
