@@ -17,18 +17,17 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.UUID;
 
 import static com.michelet.timeslotservice.support.builder.TimeSlotTestBuilder.aTimeSlot;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowableOfType;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.never;
 import static org.mockito.BDDMockito.then;
+import static org.mockito.Mockito.times;
 
 /**
  * [Service Unit Test]
@@ -43,6 +42,9 @@ class TimeSlotServiceTest {
 
     @InjectMocks
     private TimeSlotService timeSlotService;
+
+    @Mock
+    private TimeSlotCapacityService timeSlotCapacityService;
 
     /**
      * 특정 일자의 타임슬롯 목록을 조회한다.
@@ -73,42 +75,14 @@ class TimeSlotServiceTest {
     @Test
     @DisplayName("[Service] 타임슬롯 인원 차감에 성공하면 도메인의 deduct를 호출하고 저장한다.")
     void deductCapacity_Success() {
-        UUID timeSlotId = UUID.randomUUID();
-        TimeSlot slot = aTimeSlot().id(timeSlotId).capacity(4).remainingCapacity(4).build();
-
         // given
-        given(timeSlotRepository.findById(timeSlotId)).willReturn(Optional.of(slot));
+        UUID timeSlotId = UUID.randomUUID();
 
         // when
         timeSlotService.deductCapacity(timeSlotId, 2);
 
         // then
-        assertThat(slot.getRemainingCapacity()).isEqualTo(2);
-        then(timeSlotRepository).should().save(slot);
-    }
-
-    /**
-     * 타임슬롯이 없으면 TIME_SLOT_NOT_FOUND 예외를 던지고 저장하지 않는다.
-     */
-    @Test
-    @DisplayName("[Service] 타임슬롯이 없으면 TIME_SLOT_NOT_FOUND 예외를 던지고 저장하지 않는다.")
-    void deductCapacity_NotFound() {
-        UUID timeSlotId = UUID.randomUUID();
-
-        // given
-        given(timeSlotRepository.findById(timeSlotId)).willReturn(Optional.empty());
-
-        BusinessException ex = catchThrowableOfType(
-            BusinessException.class,                                  
-            () -> timeSlotService.deductCapacity(timeSlotId, 2));
-
-        // then
-        assertThat(ex).isNotNull();
-        assertThat(ex.getErrorCode()).isEqualTo(TimeSlotErrorCode.TIME_SLOT_NOT_FOUND.getCode());
-        assertThat(ex.getHttpStatus()).isEqualTo(TimeSlotErrorCode.TIME_SLOT_NOT_FOUND.getHttpStatus());
-
-        // then
-        then(timeSlotRepository).should(never()).save(any());
+        then(timeSlotCapacityService).should(times(1)).deductCapacityInTransaction(timeSlotId, 2);
     }
 
     /**
