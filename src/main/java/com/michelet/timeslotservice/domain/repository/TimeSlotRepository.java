@@ -20,5 +20,7 @@ public interface TimeSlotRepository {
 
     TimeSlot save(TimeSlot timeSlot);
 
+    TimeSlot saveAndFlush(TimeSlot timeSlot);
+
     List<TimeSlot> saveAll(List<TimeSlot> timeSlots);
 }
