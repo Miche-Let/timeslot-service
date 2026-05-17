@@ -16,10 +16,10 @@ public class TimeSlotCapacityService {
     private final TimeSlotRepository timeSlotRepository;
 
     @Transactional
-    public void deductCapacityInTransaction(UUID timeSlotId, int requiredCapacity) {
+    public void deductCapacityInTransaction(UUID timeSlotId, int deductCapacity) {
         TimeSlot domain = timeSlotRepository.findById(timeSlotId)
                 .orElseThrow(() -> new BusinessException(TimeSlotErrorCode.TIME_SLOT_NOT_FOUND));
-        domain.deduct(requiredCapacity);
+        domain.deduct(deductCapacity);
         timeSlotRepository.saveAndFlush(domain);
     }
 

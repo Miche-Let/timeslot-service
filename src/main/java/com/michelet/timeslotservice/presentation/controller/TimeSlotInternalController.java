@@ -36,7 +36,7 @@ public class TimeSlotInternalController {
             @PathVariable UUID timeSlotId, 
             @Valid @RequestBody TimeSlotDeductCapacityRequest request) {
 
-        timeSlotService.deductCapacity(timeSlotId, request.requiredCapacity());
+        timeSlotService.deductCapacity(timeSlotId, request.deductCapacity());
         return ApiResponse.ok(TimeSlotSuccessCode.DEDUCT_SUCCESS, null);
         
     }

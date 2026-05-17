@@ -68,7 +68,7 @@ public abstract class IntegrationTestSupport {
      */
     @SuppressWarnings("resource")
     @ServiceConnection
-    static final PostgreSQLContainer<?> postgresContainer = new PostgreSQLContainer<>("postgres:18.3")
+    static final PostgreSQLContainer<?> postgresContainer = new PostgreSQLContainer<>("postgres:18")
             .withDatabaseName("timeslot_test")
             .withUsername("test")
             .withPassword("test");

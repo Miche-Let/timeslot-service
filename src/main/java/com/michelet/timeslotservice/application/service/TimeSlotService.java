@@ -57,8 +57,8 @@ public class TimeSlotService {
         maxAttempts = 5,
         backoff = @Backoff(delay = 50, multiplier = 2.0, random = true, maxDelay = 200)
     )
-    public void deductCapacity(UUID timeSlotId, int requiredCapacity) {
-        timeSlotCapacityService.deductCapacityInTransaction(timeSlotId, requiredCapacity);
+    public void deductCapacity(UUID timeSlotId, int deductCapacity) {
+        timeSlotCapacityService.deductCapacityInTransaction(timeSlotId, deductCapacity);
     }
 
 
@@ -137,8 +137,8 @@ public class TimeSlotService {
         maxAttempts = 5,
         backoff = @Backoff(delay = 50, multiplier = 2.0, random = true, maxDelay = 200)
     )
-    public void restoreCapacity(UUID timeSlotId, int requiredCapacity) {
-        timeSlotCapacityService.restoreCapacityInTransaction(timeSlotId, requiredCapacity);
+    public void restoreCapacity(UUID timeSlotId, int restoreCapacity) {
+        timeSlotCapacityService.restoreCapacityInTransaction(timeSlotId, restoreCapacity);
     }
 
 

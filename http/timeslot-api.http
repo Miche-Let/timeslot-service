@@ -44,5 +44,5 @@ X-User-Role: {{X-User-Role}}
 X-Internal-Token: {{X-Internal-Token}}
 
 {
-  "requiredCapacity": 1
+  "deductCapacity": 1
 }

@@ -1,5 +1,10 @@
 server:
   port: 19400
+  tomcat:
+    threads:
+      max: 300
+      min-spare: 20
+    accept-count: 200
 
 spring:
   application:
@@ -9,7 +14,7 @@ spring:
     default: local
 
   datasource:
-    url: jdbc:postgresql://${DB_HOST:localhost}:${POSTGRES_PORT:5432}/${POSTGRES_DB:michelet_db}?currentSchema=timeslot_service
+    url: jdbc:postgresql://${POSTGRES_CONTAINER_NAME:db}:${POSTGRES_PORT:5432}/${POSTGRES_DB:michelet_db}?currentSchema=timeslot_service
     username: ${POSTGRES_USER:admin}
     password: ${POSTGRES_PASSWORD:admin}
     driver-class-name: org.postgresql.Driver
@@ -25,7 +30,7 @@ spring:
 
 internal:
   auth:
-    secret: ${SPRING_INTERNAL_AUTH_SECRET:michelet-internal-auth-secret-key-a8K2mQ9xLp4Vt7Rz1Nc}
+    secret: ${JWT_SECRET:michelet-internal-auth-secret-key-a8K2mQ9xLp4Vt7Rz1Nc}
 
 eureka:
   client:
