@@ -9,6 +9,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
+import org.springframework.test.context.ActiveProfiles;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -21,7 +22,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import static com.michelet.timeslotservice.support.builder.TimeSlotTestBuilder.aTimeSlot;
 import static org.assertj.core.api.Assertions.*;
-
+@ActiveProfiles("test")
 class TimeSlotServiceIntegrationTest extends IntegrationTestSupport {
 
     @Autowired
