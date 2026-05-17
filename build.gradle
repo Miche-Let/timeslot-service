@@ -2,7 +2,9 @@ plugins {
 	id 'java'
 	id 'org.springframework.boot' version '3.5.14'
 	id 'io.spring.dependency-management' version '1.1.7'
+	id 'org.asciidoctor.jvm.convert' version '3.3.2'
 }
+
 
 group = 'com.michelet'
 version = '0.0.1-SNAPSHOT'
@@ -13,12 +15,22 @@ java {
 	}
 }
 
+configurations {
+    compileOnly {
+        extendsFrom annotationProcessor
+    }
+    // 2. Asciidoctor 확장 설정 추가
+    asciidoctorExt
+}
+
 repositories {
 	mavenCentral()
+	maven { url 'https://jitpack.io' }
 }
 
 ext {
 	set('springCloudVersion', "2025.0.2")
+	snippetsDir = file('build/generated-snippets')
 }
 
 dependencies {
@@ -27,13 +39,62 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-web'
 	implementation 'org.springframework.cloud:spring-cloud-starter-netflix-eureka-client'
 	implementation 'org.springframework.cloud:spring-cloud-starter-openfeign'
+	implementation 'com.github.Miche-Let:common:dev-SNAPSHOT'
+	implementation 'org.mapstruct:mapstruct:1.6.3'
+	implementation 'com.github.Miche-Let:common-auth-webmvc:0.1.5'
+
+	implementation 'org.springframework.retry:spring-retry'
+    implementation 'org.springframework:spring-aspects'
+	
+	implementation 'org.springframework.boot:spring-boot-starter-actuator'
+    runtimeOnly 'io.micrometer:micrometer-registry-prometheus'
+	
 	compileOnly 'org.projectlombok:lombok'
 	runtimeOnly 'org.postgresql:postgresql'
 	annotationProcessor 'org.projectlombok:lombok'
+	annotationProcessor 'org.mapstruct:mapstruct-processor:1.6.3'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+
+	asciidoctorExt 'org.springframework.restdocs:spring-restdocs-asciidoctor'
+    testImplementation 'org.springframework.restdocs:spring-restdocs-mockmvc'
+
+	testImplementation 'org.springframework.boot:spring-boot-testcontainers'
+    testImplementation 'org.testcontainers:junit-jupiter'
+    testImplementation 'org.testcontainers:postgresql'
+
+	implementation 'io.jsonwebtoken:jjwt-api:0.12.6'
+    runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.12.6'
+    runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.12.6'
+
 	testCompileOnly 'org.projectlombok:lombok'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 	testAnnotationProcessor 'org.projectlombok:lombok'
+}
+
+test {
+    outputs.dir snippetsDir
+    useJUnitPlatform()
+}
+
+asciidoctor {
+    inputs.dir snippetsDir
+    configurations 'asciidoctorExt'
+    dependsOn test
+
+    attributes 'snippets': snippetsDir
+}
+
+jar {
+    enabled = false
+}
+
+bootJar {
+	archiveFileName = 'app.jar'
+	
+    dependsOn asciidoctor
+    from ("${asciidoctor.outputDir}") {
+        into 'static/docs'
+    }
 }
 
 dependencyManagement {
