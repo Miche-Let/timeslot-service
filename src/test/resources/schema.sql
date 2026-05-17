@@ -1,0 +1,1 @@
+CREATE SCHEMA IF NOT EXISTS timeslot_service;
