@@ -1,5 +1,10 @@
 server:
   port: 19400
+  tomcat:
+    threads:
+      max: 300
+      min-spare: 20
+    accept-count: 200
 
 spring:
   application:
